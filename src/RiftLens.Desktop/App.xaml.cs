@@ -88,9 +88,8 @@ public partial class App : Application
         builder.Services.AddSingleton(sp => new DiskAssetCache(sp.GetRequiredService<IHttpClientFactory>().CreateClient("assets"), cacheDirectory));
         builder.Services.AddHttpClient("assets", c => c.Timeout = TimeSpan.FromSeconds(20));
         builder.Services.AddWpfBlazorWebView();
-#if DEBUG
+        // Outils de développement (F12 / Ctrl+Maj+I) : utiles pour diagnostiquer l'affichage.
         builder.Services.AddBlazorWebViewDeveloperTools();
-#endif
         builder.Services.AddRiftLensUi(backend);
         builder.Services.AddRiftLensLocalClient(builder.Configuration);
         builder.Services.AddSingleton<MainWindow>();
