@@ -1,7 +1,7 @@
 # RiftLens
 
-Application compagnon personnelle pour League of Legends : profils, historique, tier list high-elo,
-assistant de draft (LCU) et overlay en jeu (Live Client Data).
+Application compagnon personnelle pour League of Legends : profils, historique, tier list high-elo
+et assistant de draft (LCU).
 
 > RiftLens n'est pas approuvé par Riot Games et ne reflète pas les opinions de Riot Games ou de toute
 > personne officiellement impliquée dans la production ou la gestion des propriétés de Riot Games.
@@ -15,7 +15,7 @@ assistant de draft (LCU) et overlay en jeu (Live Client Data).
 | `RiftLens.Infrastructure` | EF Core / SQL Server, client Riot API, rate limiter, Data Dragon |
 | `RiftLens.Api` | Minimal API protégée par clé d'accès (`X-RiftLens-Key`) |
 | `RiftLens.Collector` | Worker de collecte high-elo + agrégation |
-| `RiftLens.LocalClient` | LCU (champ select) + Live Client Data (overlay) |
+| `RiftLens.LocalClient` | Client LoL local (LCU) : détection, champ select, import runes / item sets |
 | `RiftLens.UI` | Razor Class Library : design system + pages |
 | `RiftLens.Desktop` | Hôte WPF + BlazorWebView (Windows) |
 
