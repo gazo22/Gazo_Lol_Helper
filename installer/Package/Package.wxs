@@ -17,8 +17,8 @@
     <MajorUpgrade DowngradeErrorMessage="Une version plus récente de RiftLens est déjà installée." />
     <MediaTemplate EmbedCab="yes" />
 
-    <Icon Id="RiftLensIcon" SourceFile="!(bindpath.Assets)riftlens.ico" />
-    <Property Id="ARPPRODUCTICON" Value="RiftLensIcon" />
+    <Icon Id="RiftLensIcon.exe" SourceFile="!(bindpath.Assets)riftlens.ico" />
+    <Property Id="ARPPRODUCTICON" Value="RiftLensIcon.exe" />
     <Property Id="ARPHELPLINK" Value="https://github.com/gazo22/Gazo_Lol_Helper" />
 
     <StandardDirectory Id="ProgramFiles64Folder">
@@ -42,9 +42,9 @@
         <File Id="DesktopExeFile" Source="!(bindpath.App)RiftLens.Desktop.exe" KeyPath="yes">
           <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="RiftLens"
                     Description="Application compagnon League of Legends" WorkingDirectory="AppFolder"
-                    Icon="RiftLensIcon" Advertise="yes" />
+                    Icon="RiftLensIcon.exe" Advertise="yes" />
           <Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="RiftLens"
-                    WorkingDirectory="AppFolder" Icon="RiftLensIcon" Advertise="yes" />
+                    WorkingDirectory="AppFolder" Icon="RiftLensIcon.exe" Advertise="yes" />
         </File>
       </Component>
       <!-- Tout le reste du dossier publié (runtime .NET, WebView, wwwroot…). -->
