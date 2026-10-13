@@ -11,11 +11,14 @@ internal sealed partial class RiotExceptionHandler(IProblemDetailsService proble
     /// <summary>Code renvoyé au client quand la clé Riot du serveur est expirée.</summary>
     public const string RiotKeyExpiredCode = "riot-key-invalid";
 
+    public const string RiotKeyMissingCode = "riot-key-missing";
+
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         (int status, string title, string? code) = exception switch
         {
             PlayerNotFoundException e => (StatusCodes.Status404NotFound, e.Message, "player-not-found"),
+            RiotApiAuthException { IsMissingKey: true } => (StatusCodes.Status503ServiceUnavailable, "Aucune clé API Riot n'est configurée sur le serveur.", RiotKeyMissingCode),
             RiotApiAuthException => (StatusCodes.Status503ServiceUnavailable, "La clé API Riot du serveur est invalide ou expirée.", RiotKeyExpiredCode),
             RiotApiException { StatusCode: HttpStatusCode.TooManyRequests } => (StatusCodes.Status429TooManyRequests, "Quota Riot atteint, réessayez dans un instant.", "riot-rate-limited"),
             RiotApiException e => (StatusCodes.Status502BadGateway, $"L'API Riot a répondu une erreur ({(int?)e.StatusCode}).", "riot-error"),

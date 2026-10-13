@@ -1,5 +1,5 @@
-using RiftLens.Collector;
 using RiftLens.Infrastructure;
+using RiftLens.Infrastructure.Collection;
 using Serilog;
 
 var builder = Host.CreateApplicationBuilder(args);

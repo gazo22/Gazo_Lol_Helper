@@ -12,6 +12,7 @@ public sealed class NavigationPaletteSource : IPaletteSource
         new(PaletteGroup.Navigation, "Champions", "champions", "champion"),
         new(PaletteGroup.Navigation, "Assistant de draft", "draft", "draft"),
         new(PaletteGroup.Navigation, "Paramètres", "settings", "settings"),
+        new(PaletteGroup.Navigation, "Configurer la clé API Riot", "setup", "bolt"),
         new(PaletteGroup.Navigation, "À propos & mentions légales", "about", "info"),
     ];
 

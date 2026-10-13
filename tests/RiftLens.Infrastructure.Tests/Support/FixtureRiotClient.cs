@@ -51,6 +51,8 @@ internal sealed class FixtureRiotClient : IRiotApiClient
         return Task.FromResult<MatchDto?>(match with { Metadata = match.Metadata with { MatchId = matchId } });
     }
 
+    public Task<bool> ValidateKeyAsync(Platform platform, string key, CancellationToken ct = default) => Task.FromResult(key.EndsWith('0'));
+
     public Task<TimelineDto?> GetTimelineAsync(RegionalRoute route, string matchId, CancellationToken ct = default)
     {
         TimelineCalls++;

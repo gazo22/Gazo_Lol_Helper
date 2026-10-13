@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using RiftLens.Infrastructure.Collection;
+using RiftLens.Infrastructure.Local;
 using RiftLens.Infrastructure.Matches;
 using RiftLens.Infrastructure.Persistence;
 using RiftLens.Infrastructure.Players;
@@ -39,10 +40,9 @@ public static class DependencyInjection
 
     public static IServiceCollection AddRiotApi(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddOptions<RiotApiOptions>()
-            .Bind(configuration.GetSection(RiotApiOptions.SectionName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+        services.AddOptions<RiotApiOptions>().Bind(configuration.GetSection(RiotApiOptions.SectionName));
+        services.AddOptions<LocalModeOptions>().Bind(configuration.GetSection(LocalModeOptions.SectionName));
+        services.AddSingleton<IRiotKeyStore, RiotKeyStore>();
         services.AddOptions<RiotRateLimitOptions>()
             .Bind(configuration.GetSection(RiotRateLimitOptions.SectionName))
             .Validate(o => o.BudgetShare is > 0 and <= 1, "Riot:RateLimit:BudgetShare doit être dans ]0, 1].")

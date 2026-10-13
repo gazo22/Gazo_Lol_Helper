@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Installeur tout-en-un RiftLens-Setup.exe :
+    1. Microsoft Edge WebView2 Runtime (si absent)
+    2. SQL Server 2022 Express, instance RIFTLENS (si absente)
+    3. RiftLens.msi (application + service local)
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+  <Bundle Name="RiftLens"
+          Manufacturer="RiftLens"
+          Version="$(Version)"
+          UpgradeCode="109e47a9-21d2-47a1-b83d-bfe71d2e030b"
+          IconSourceFile="!(bindpath.Assets)riftlens.ico"
+          AboutUrl="https://github.com/gazo22/Gazo_Lol_Helper">
+
+    <BootstrapperApplication>
+      <bal:WixStandardBootstrapperApplication Theme="hyperlinkLicense"
+                                              LicenseUrl=""
+                                              LogoFile="!(bindpath.Assets)riftlens.png"
+                                              ShowVersion="yes"
+                                              SuppressOptionsUI="yes"
+                                              LaunchTarget="[ProgramFiles64Folder]RiftLens\App\RiftLens.Desktop.exe" />
+    </BootstrapperApplication>
+
+    <!-- Détections -->
+    <util:RegistrySearch Id="WebView2Machine" Root="HKLM" Bitness="always32"
+                         Key="SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
+                         Value="pv" Variable="WebView2MachineVersion" />
+    <util:RegistrySearch Id="WebView2User" Root="HKCU"
+                         Key="Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
+                         Value="pv" Variable="WebView2UserVersion" />
+    <util:RegistrySearch Id="SqlRiftLensInstance" Root="HKLM" Bitness="always64"
+                         Key="SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL"
+                         Value="RIFTLENS" Variable="SqlRiftLensInstance" />
+
+    <Chain>
+      <ExePackage Id="WebView2"
+                  DisplayName="Microsoft Edge WebView2 Runtime"
+                  PerMachine="yes" Permanent="yes" Vital="yes" Cache="remove"
+                  DetectCondition="(WebView2MachineVersion AND WebView2MachineVersion &lt;&gt; &quot;0.0.0.0&quot;) OR (WebView2UserVersion AND WebView2UserVersion &lt;&gt; &quot;0.0.0.0&quot;)"
+                  InstallArguments="/silent /install">
+        <ExePackagePayload SourceFile="!(bindpath.Redist)MicrosoftEdgeWebview2Setup.exe" />
+      </ExePackage>
+
+      <!-- Le bootstrapper SSEI télécharge SQL Server Express (~250 Mo) pendant l'installation. -->
+      <ExePackage Id="SqlExpress"
+                  DisplayName="Microsoft SQL Server 2022 Express (instance RIFTLENS)"
+                  PerMachine="yes" Permanent="yes" Vital="yes" Cache="remove"
+                  DetectCondition="SqlRiftLensInstance"
+                  InstallArguments="/ACTION=Install /QUIET /IACCEPTSQLSERVERLICENSETERMS /ConfigurationFile=&quot;[WixBundleExecutePackageCacheFolder]SqlExpressConfiguration.ini&quot;">
+        <ExePackagePayload SourceFile="!(bindpath.Redist)SQL2022-SSEI-Expr.exe" />
+        <Payload SourceFile="SqlExpressConfiguration.ini" />
+        <ExitCode Value="3010" Behavior="scheduleReboot" />
+      </ExePackage>
+
+      <MsiPackage SourceFile="$(RiftLens.Package.TargetPath)" Vital="yes" />
+    </Chain>
+  </Bundle>
+</Wix>

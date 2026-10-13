@@ -1,8 +1,11 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RiftLens.Infrastructure.Collection;
 using RiftLens.Infrastructure.Riot;
+using RiftLens.Infrastructure.Riot.RateLimit;
 
-namespace RiftLens.Collector;
+namespace RiftLens.Infrastructure.Collection;
 
 /// <summary>
 /// Boucle du Collector : ladders → ids de matchs → téléchargement → agrégation.
@@ -11,15 +14,18 @@ namespace RiftLens.Collector;
 public sealed partial class CollectorWorker(
     IServiceScopeFactory scopes,
     IOptions<CollectorOptions> options,
+    IRiotKeyStore keys,
     TimeProvider time,
     ILogger<CollectorWorker> logger) : BackgroundService
 {
     private DateTimeOffset _lastAggregation = DateTimeOffset.MinValue;
     private int _storedSinceAggregation;
+    private CancellationTokenSource _wake = new();
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         LogStarted(logger, options.Value.Platform, options.Value.Tiers);
+        keys.KeyChanged += OnKeyChanged;
         while (!stoppingToken.IsCancellationRequested)
         {
             TimeSpan delay;
@@ -30,6 +36,12 @@ public sealed partial class CollectorWorker(
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 break;
+            }
+            catch (RiotApiAuthException ex) when (ex.IsMissingKey)
+            {
+                // Clé pas encore saisie dans l'assistant : on dort jusqu'à ce qu'elle le soit.
+                LogWaitingForKey(logger);
+                delay = Timeout.InfiniteTimeSpan;
             }
             catch (RiotApiAuthException ex)
             {
@@ -44,19 +56,40 @@ public sealed partial class CollectorWorker(
                 delay = options.Value.IdleDelay;
             }
 
-            if (delay > TimeSpan.Zero)
+            if (delay != TimeSpan.Zero)
             {
-                try { await Task.Delay(delay, time, stoppingToken); }
+                using var linked = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken, _wake.Token);
+                try { await Task.Delay(delay, time, linked.Token); }
+                catch (OperationCanceledException) when (!stoppingToken.IsCancellationRequested)
+                {
+                    // Réveillé par une nouvelle clé Riot.
+                    var old = Interlocked.Exchange(ref _wake, new CancellationTokenSource());
+                    old.Dispose();
+                }
                 catch (OperationCanceledException) { break; }
             }
         }
 
+        keys.KeyChanged -= OnKeyChanged;
         LogStopped(logger);
+    }
+
+    private void OnKeyChanged()
+    {
+        try { _wake.Cancel(); }
+        catch (ObjectDisposedException) { /* déjà remplacé */ }
+    }
+
+    public override void Dispose()
+    {
+        _wake.Dispose();
+        base.Dispose();
     }
 
     /// <summary>Renvoie true si du travail a été fait (on enchaîne alors sans attendre).</summary>
     private async Task<bool> RunCycleAsync(CancellationToken ct)
     {
+        using var background = RiotRequestContext.WithPriority(RequestPriority.Background);
         await using var scope = scopes.CreateAsyncScope();
         var pipeline = scope.ServiceProvider.GetRequiredService<CollectorPipeline>();
         var worked = false;
@@ -88,6 +121,9 @@ public sealed partial class CollectorWorker(
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Collector démarré sur {Platform} ({Tiers})")]
     private static partial void LogStarted(ILogger logger, Domain.ValueObjects.Platform platform, IReadOnlyList<Domain.ValueObjects.RankTier> tiers);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Collector en attente d'une clé API Riot (assistant du Desktop)")]
+    private static partial void LogWaitingForKey(ILogger logger);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Collector arrêté proprement")]
     private static partial void LogStopped(ILogger logger);

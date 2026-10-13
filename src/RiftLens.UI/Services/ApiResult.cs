@@ -6,6 +6,7 @@ public enum ApiError
     NotFound,
     Unauthorized,
     RiotKeyInvalid,
+    RiotKeyMissing,
     RateLimited,
     Offline,
     Server,

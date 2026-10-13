@@ -1,0 +1,16 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <PropertyGroup>
+    <OutputName>RiftLens</OutputName>
+    <OutputType>Package</OutputType>
+    <Platform>x64</Platform>
+    <InstallerPlatform>x64</InstallerPlatform>
+  </PropertyGroup>
+  <ItemGroup>
+    <BindPath Include="$(ArtifactsRoot)app" BindName="App" />
+    <BindPath Include="$(ArtifactsRoot)server" BindName="Server" />
+    <BindPath Include="$(MSBuildThisFileDirectory)..\..\assets" BindName="Assets" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Util.wixext" Version="5.0.2" />
+  </ItemGroup>
+</Project>

@@ -10,19 +10,29 @@ namespace RiftLens.Infrastructure.Riot.RateLimit;
 internal sealed class RiotRateLimitHandler(
     RiotRateLimiter limiter,
     IOptions<RiotRateLimitOptions> rateOptions,
-    IOptions<RiotApiOptions> apiOptions,
+    IRiotKeyStore keys,
     TimeProvider time) : DelegatingHandler
 {
     public static readonly HttpRequestOptionsKey<string> MethodKey = new("riftlens.riot.method");
     public static readonly HttpRequestOptionsKey<RequestPriority> PriorityKey = new("riftlens.riot.priority");
 
+    /// <summary>Clé à utiliser pour cette requête seulement (validation d'une nouvelle clé avant enregistrement).</summary>
+    public static readonly HttpRequestOptionsKey<string> ExplicitKeyKey = new("riftlens.riot.explicit-key");
+
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var route = request.RequestUri?.Host.Split('.')[0] ?? throw new InvalidOperationException("URI Riot manquante.");
         var method = request.Options.TryGetValue(MethodKey, out var m) ? m : request.RequestUri.AbsolutePath;
-        var priority = request.Options.TryGetValue(PriorityKey, out var p) ? p : rateOptions.Value.DefaultPriority;
+        var priority = request.Options.TryGetValue(PriorityKey, out var p) ? p : RiotRequestContext.Priority ?? rateOptions.Value.DefaultPriority;
+        var isExplicit = request.Options.TryGetValue(ExplicitKeyKey, out var explicitKey);
+        var key = isExplicit ? explicitKey : keys.GetKey();
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            throw new RiotApiAuthException("Aucune clé API Riot configurée.") { IsMissingKey = true };
+        }
+
         request.Headers.Remove("X-Riot-Token");
-        request.Headers.Add("X-Riot-Token", apiOptions.Value.ApiKey);
+        request.Headers.Add("X-Riot-Token", key);
 
         for (var attempt = 0; ; attempt++)
         {
@@ -30,6 +40,11 @@ internal sealed class RiotRateLimitHandler(
             var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
             limiter.UpdateLimits(route, method, Header(response, "X-App-Rate-Limit"), Header(response, "X-Method-Rate-Limit"));
+            if (!isExplicit)
+            {
+                if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden) { keys.ReportRejected(); }
+                else if (response.IsSuccessStatusCode) { keys.ReportAccepted(); }
+            }
 
             if (response.StatusCode != HttpStatusCode.TooManyRequests || attempt >= rateOptions.Value.MaxRetries)
             {

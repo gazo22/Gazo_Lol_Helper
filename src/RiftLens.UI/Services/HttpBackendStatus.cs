@@ -16,6 +16,7 @@ public sealed class HttpBackendStatus(HttpClient http) : IBackendStatus
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
         BackendState next;
+        var previousInfo = ServerInfo;
         try
         {
             using var response = await http.GetAsync(new Uri("api/meta", UriKind.Relative), cancellationToken);
@@ -39,7 +40,7 @@ public sealed class HttpBackendStatus(HttpClient http) : IBackendStatus
             next = BackendState.Offline; // timeout
         }
 
-        if (next != State)
+        if (next != State || previousInfo != ServerInfo)
         {
             State = next;
             Changed?.Invoke();

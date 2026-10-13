@@ -15,6 +15,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /app .
 USER $APP_UID
-ARG PROJECT=RiftLens.Api
-ENV ENTRY=${PROJECT}.dll
+ARG ASSEMBLY=RiftLens.Server
+ENV ENTRY=${ASSEMBLY}.dll
 ENTRYPOINT ["sh", "-c", "dotnet $ENTRY"]

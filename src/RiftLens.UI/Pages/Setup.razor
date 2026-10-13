@@ -1,0 +1,74 @@
+@page "/setup"
+@using RiftLens.Contracts
+@inject RiftLensApiClient Api
+@inject IBackendStatus Backend
+@inject NavigationManager Nav
+
+<PageTitle>Configuration · RiftLens</PageTitle>
+
+<div class="rl-page rl-setup">
+    <div class="rl-setup__card rl-card">
+        <div class="rl-setup__steps">
+            <span class="is-done">1 · Installation</span>
+            <span class="@(_done ? "is-done" : "is-active")">2 · Clé API Riot</span>
+            <span class="@(_done ? "is-active" : null)">3 · C'est parti</span>
+        </div>
+
+        @if (_done)
+        {
+            <EmptyState Title="Tout est prêt" IconName="bolt"
+                        Description="La clé est enregistrée sur ce poste. La collecte des parties high-elo démarre en arrière-plan : la tier list se remplira dans les prochaines heures.">
+                <button class="rl-btn rl-btn--primary" @onclick="@(() => Nav.NavigateTo(""))">Ouvrir RiftLens</button>
+            </EmptyState>
+        }
+        else
+        {
+            <h1>Votre clé API Riot</h1>
+            <p class="rl-muted">
+                RiftLens interroge l'API officielle de Riot avec <b>votre</b> clé. Elle reste sur ce PC (chiffrée par Windows) et
+                n'est jamais envoyée ailleurs que chez Riot.
+            </p>
+            <ol class="rl-setup__howto">
+                <li>Connectez-vous sur <b>developer.riotgames.com</b> avec votre compte Riot.</li>
+                <li>Copiez la <b>Development API Key</b> affichée sur le tableau de bord (format <code>RGAPI-…</code>).</li>
+                <li>Collez-la ci-dessous. Une clé de développement expire après 24 h : il suffira de revenir ici pour la remplacer.</li>
+            </ol>
+
+            @if (Backend.ServerInfo is { LocalMode: false })
+            {
+                <div class="rl-toast rl-toast--error">Ce poste est connecté à un serveur distant : la clé Riot se configure sur ce serveur.</div>
+            }
+
+            <form class="rl-setup__form" @onsubmit="SaveAsync" @onsubmit:preventDefault="true">
+                <label class="rl-search-field rl-setup__input">
+                    <Icon Name="bolt" Class="rl-ico-16" />
+                    <input type="password" placeholder="RGAPI-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" spellcheck="false"
+                           value="@_key" @oninput="e => _key = e.Value?.ToString() ?? string.Empty" />
+                </label>
+                <button class="rl-btn rl-btn--primary" type="submit" disabled="@(_saving || _key.Trim().Length == 0)">
+                    @(_saving ? "Vérification auprès de Riot…" : "Valider la clé")
+                </button>
+            </form>
+            @if (_error is not null) { <div class="rl-toast rl-toast--error" role="alert">@_error</div> }
+        }
+    </div>
+</div>
+
+@code {
+    private string _key = string.Empty;
+    private string? _error;
+    private bool _saving;
+    private bool _done;
+
+    private async Task SaveAsync()
+    {
+        (_saving, _error) = (true, null);
+        _error = await Api.SetRiotKeyAsync(_key.Trim());
+        _saving = false;
+        if (_error is null)
+        {
+            (_done, _key) = (true, string.Empty);
+            await Backend.RefreshAsync();
+        }
+    }
+}

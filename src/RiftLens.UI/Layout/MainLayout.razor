@@ -2,6 +2,8 @@
 @implements IAsyncDisposable
 @inject CommandPaletteState Palette
 @inject IJSRuntime JS
+@inject IBackendStatus Backend
+@inject NavigationManager Nav
 
 <div class="rl-shell">
     <aside class="rl-sidebar">
@@ -37,6 +39,7 @@
     </header>
 
     <main class="rl-main">
+        <ServerBanner />
         @Body
     </main>
 </div>
@@ -47,6 +50,37 @@
     private IJSObjectReference? _module;
     private IJSObjectReference? _hotkeys;
     private DotNetObjectReference<MainLayout>? _self;
+    private readonly CancellationTokenSource _monitor = new();
+    private bool _setupOffered;
+
+    /// <summary>Surveille le serveur toutes les 30 s (service arrêté, clé Riot expirée…).</summary>
+    private async Task MonitorBackendAsync()
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+        try
+        {
+            do
+            {
+                await Backend.RefreshAsync(_monitor.Token);
+                OfferSetupOnce();
+            }
+            while (await timer.WaitForNextTickAsync(_monitor.Token));
+        }
+        catch (OperationCanceledException)
+        {
+            // Fenêtre fermée.
+        }
+    }
+
+    /// <summary>Premier lancement : redirige vers l'assistant si la clé Riot du serveur local manque.</summary>
+    private void OfferSetupOnce()
+    {
+        if (!_setupOffered && Backend.ServerInfo is { LocalMode: true, RiotKey: RiftLens.Contracts.RiotKeyStates.Missing })
+        {
+            _setupOffered = true;
+            _ = InvokeAsync(() => Nav.NavigateTo("setup"));
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -55,6 +89,7 @@
             return;
         }
 
+        _ = MonitorBackendAsync();
         _self = DotNetObjectReference.Create(this);
         _module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/RiftLens.UI/js/riftlens.js");
         _hotkeys = await _module.InvokeAsync<IJSObjectReference>("registerHotkeys", _self);
@@ -65,6 +100,8 @@
 
     public async ValueTask DisposeAsync()
     {
+        await _monitor.CancelAsync();
+        _monitor.Dispose();
         try
         {
             if (_hotkeys is not null) { await _hotkeys.InvokeVoidAsync("dispose"); await _hotkeys.DisposeAsync(); }

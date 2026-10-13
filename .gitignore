@@ -12,3 +12,8 @@ appsettings.*.local.json
 *.env
 .env
 secrets.json
+
+# Build installeur
+artifacts/
+installer/**/bin/
+installer/**/obj/

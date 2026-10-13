@@ -1,4 +1,9 @@
 @page "/settings"
+@using RiftLens.Contracts
+@using RiftLens.LocalClient
+@implements IDisposable
+@inject IBackendStatus Backend
+@inject ILeagueClientService Client
 
 <PageTitle>Paramètres · RiftLens</PageTitle>
 
@@ -6,10 +11,73 @@
     <div class="rl-page__header">
         <div>
             <h1 class="rl-page__title">Paramètres</h1>
-            <div class="rl-page__subtitle">Backend, clé d'accès, région, dossier du client LoL.</div>
+            <div class="rl-page__subtitle">État du serveur local, de la clé Riot et du client League of Legends.</div>
         </div>
     </div>
-    <Card NoPadding="true">
-        <EmptyState Title="Bientôt disponible" IconName="settings" Description="La configuration se fait pour l'instant dans appsettings.json du Desktop." />
-    </Card>
+
+    <div class="rl-grid rl-grid--2">
+        <Card Title="Serveur RiftLens">
+            <dl class="rl-kv">
+                <dt>État</dt><dd><span class="rl-status @(Backend.State == BackendState.Online ? "rl-status--ok" : "rl-status--down")"><span class="rl-status__dot"></span>@BackendLabel</span></dd>
+                <dt>Mode</dt><dd>@(Backend.ServerInfo?.LocalMode == true ? "Local (service Windows « RiftLens Server »)" : "Serveur distant")</dd>
+                <dt>Version</dt><dd>@(Backend.ServerInfo?.Version ?? "—")</dd>
+                <dt>Région</dt><dd>@(Backend.ServerInfo?.DefaultPlatform.ToUpperInvariant() ?? "—")</dd>
+            </dl>
+        </Card>
+
+        <Card Title="Clé API Riot">
+            <dl class="rl-kv">
+                <dt>État</dt><dd>@KeyLabel</dd>
+            </dl>
+            <a class="rl-btn rl-btn--primary rl-btn--block" href="setup">@(Backend.ServerInfo?.RiotKey == RiotKeyStates.Missing ? "Configurer la clé" : "Remplacer la clé")</a>
+        </Card>
+
+        <Card Title="Client League of Legends">
+            <dl class="rl-kv">
+                <dt>État</dt><dd>@(Client.Status switch { LeagueClientStatus.Connected => "Connecté", LeagueClientStatus.Connecting => "Connexion…", _ => "Non détecté" })</dd>
+                <dt>Détection</dt><dd>Automatique (processus LeagueClientUx, puis C:\Riot Games\League of Legends)</dd>
+            </dl>
+        </Card>
+
+        <Card Title="Données locales">
+            <dl class="rl-kv">
+                <dt>Serveur</dt><dd><code>%ProgramData%\RiftLens</code> (clés, journaux)</dd>
+                <dt>Application</dt><dd><code>%LocalAppData%\RiftLens</code> (cache d'images, journaux)</dd>
+                <dt>Base</dt><dd>SQL Server Express, instance <code>RIFTLENS</code></dd>
+            </dl>
+        </Card>
+    </div>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Backend.Changed += OnChanged;
+        Client.Changed += OnChanged;
+    }
+
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private string BackendLabel => Backend.State switch
+    {
+        BackendState.Online => "En ligne",
+        BackendState.Unauthorized => "Clé d'accès refusée",
+        BackendState.Offline => "Injoignable",
+        _ => "Connexion…",
+    };
+
+    private string KeyLabel => Backend.ServerInfo?.RiotKey switch
+    {
+        RiotKeyStates.Valid => "Valide",
+        RiotKeyStates.Rejected => "Expirée ou invalide",
+        RiotKeyStates.Missing => "Non configurée",
+        RiotKeyStates.Unknown => "Configurée (pas encore utilisée)",
+        _ => "—",
+    };
+
+    public void Dispose()
+    {
+        Backend.Changed -= OnChanged;
+        Client.Changed -= OnChanged;
+    }
+}

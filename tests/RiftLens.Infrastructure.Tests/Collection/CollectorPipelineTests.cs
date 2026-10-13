@@ -128,6 +128,7 @@ public sealed class CollectorPipelineTests : IDisposable
         public Task<IReadOnlyList<RiftLens.Infrastructure.Riot.Dtos.ChampionMasteryDto>> GetTopMasteriesAsync(Platform p, string id, int c, CancellationToken ct = default) => _inner.GetTopMasteriesAsync(p, id, c, ct);
         public Task<IReadOnlyList<string>> GetMatchIdsAsync(RegionalRoute r, string id, MatchIdQuery q, CancellationToken ct = default) => _inner.GetMatchIdsAsync(r, id, q, ct);
         public Task<RiftLens.Infrastructure.Riot.Dtos.MatchDto?> GetMatchAsync(RegionalRoute r, string id, CancellationToken ct = default) => throw new RiotApiException(System.Net.HttpStatusCode.InternalServerError, "boom");
+        public Task<bool> ValidateKeyAsync(Platform p, string key, CancellationToken ct = default) => _inner.ValidateKeyAsync(p, key, ct);
         public Task<RiftLens.Infrastructure.Riot.Dtos.TimelineDto?> GetTimelineAsync(RegionalRoute r, string id, CancellationToken ct = default) => _inner.GetTimelineAsync(r, id, ct);
     }
 

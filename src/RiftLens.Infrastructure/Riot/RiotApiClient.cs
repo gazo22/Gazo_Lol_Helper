@@ -60,6 +60,20 @@ internal sealed class RiotApiClient(HttpClient http) : IRiotApiClient
     public Task<TimelineDto?> GetTimelineAsync(RegionalRoute route, string matchId, CancellationToken ct = default) =>
         GetAsync(Regional(route, $"/lol/match/v5/matches/{Esc(matchId)}/timeline"), "match-v5.timeline", Json.TimelineDto, null, ct);
 
+    public async Task<bool> ValidateKeyAsync(Platform platform, string key, CancellationToken ct = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, OnPlatform(platform, "/lol/status/v4/platform-data"));
+        request.Options.Set(RiotRateLimitHandler.MethodKey, "lol-status-v4.platform-data");
+        request.Options.Set(RiotRateLimitHandler.ExplicitKeyKey, key);
+        using var response = await http.SendAsync(request, ct).ConfigureAwait(false);
+        return response.StatusCode switch
+        {
+            HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => false,
+            _ when response.IsSuccessStatusCode => true,
+            var status => throw new RiotApiException(status, $"Validation de la clé impossible ({(int)status})."),
+        };
+    }
+
     private async Task<T?> GetAsync<T>(Uri uri, string method, JsonTypeInfo<T> typeInfo, RequestPriority? priority, CancellationToken ct)
         where T : class
     {

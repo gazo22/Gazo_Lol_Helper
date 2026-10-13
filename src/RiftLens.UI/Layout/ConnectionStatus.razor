@@ -8,14 +8,6 @@
 @code {
     protected override void OnInitialized() => Backend.Changed += OnChanged;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await Backend.RefreshAsync();
-        }
-    }
-
     private void OnChanged() => _ = InvokeAsync(StateHasChanged);
 
     private string? Css => Backend.State switch

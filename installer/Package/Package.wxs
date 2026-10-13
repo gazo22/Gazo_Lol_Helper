@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MSI RiftLens : application Desktop + service Windows « RiftLens Server » (Api + Collector).
+  Les binaires viennent de `dotnet publish` (self-contained win-x64) dans artifacts/app et artifacts/server.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+  <Package Name="RiftLens"
+           Manufacturer="RiftLens"
+           Version="$(Version)"
+           UpgradeCode="1715ce96-b765-4d7b-9654-a48b73a6ec3c"
+           Scope="perMachine"
+           Language="1036"
+           Codepage="1252">
+
+    <SummaryInformation Description="RiftLens — application compagnon League of Legends" />
+    <MajorUpgrade DowngradeErrorMessage="Une version plus récente de RiftLens est déjà installée." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="RiftLensIcon" SourceFile="!(bindpath.Assets)riftlens.ico" />
+    <Property Id="ARPPRODUCTICON" Value="RiftLensIcon" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/gazo22/Gazo_Lol_Helper" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="RiftLens">
+        <Directory Id="AppFolder" Name="App" />
+        <Directory Id="ServerFolder" Name="Server" />
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
+    <StandardDirectory Id="DesktopFolder" />
+
+    <Feature Id="Main" Title="RiftLens" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentGroupRef Id="ServerFiles" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <ComponentGroup Id="AppFiles" Directory="AppFolder">
+      <Component Id="DesktopExe">
+        <File Id="DesktopExeFile" Source="!(bindpath.App)RiftLens.Desktop.exe" KeyPath="yes">
+          <Shortcut Id="StartMenuShortcut" Directory="ProgramMenuFolder" Name="RiftLens"
+                    Description="Application compagnon League of Legends" WorkingDirectory="AppFolder"
+                    Icon="RiftLensIcon" Advertise="yes" />
+          <Shortcut Id="DesktopShortcut" Directory="DesktopFolder" Name="RiftLens"
+                    WorkingDirectory="AppFolder" Icon="RiftLensIcon" Advertise="yes" />
+        </File>
+      </Component>
+      <!-- Tout le reste du dossier publié (runtime .NET, WebView, wwwroot…). -->
+      <Files Include="!(bindpath.App)**">
+        <Exclude Files="!(bindpath.App)RiftLens.Desktop.exe" />
+        <Exclude Files="!(bindpath.App)**\*.pdb" />
+      </Files>
+    </ComponentGroup>
+
+    <ComponentGroup Id="ServerFiles" Directory="ServerFolder">
+      <Component Id="ServerService">
+        <File Id="ServerExeFile" Source="!(bindpath.Server)RiftLens.Server.exe" KeyPath="yes" />
+        <ServiceInstall Id="RiftLensServerInstall"
+                        Name="RiftLensServer"
+                        DisplayName="RiftLens Server"
+                        Description="Serveur local RiftLens : API, collecte des parties high-elo et statistiques."
+                        Type="ownProcess"
+                        Start="auto"
+                        ErrorControl="normal"
+                        Account="LocalSystem"
+                        Arguments="--LocalMode:Enabled=true"
+                        Vital="yes">
+          <util:ServiceConfig FirstFailureActionType="restart"
+                              SecondFailureActionType="restart"
+                              ThirdFailureActionType="restart"
+                              RestartServiceDelayInSeconds="30"
+                              ResetPeriodInDays="1" />
+        </ServiceInstall>
+        <!-- Wait="no" : un démarrage lent (SQL Express encore en initialisation) ne fait pas échouer l'installation. -->
+        <ServiceControl Id="RiftLensServerControl" Name="RiftLensServer" Start="install" Stop="both" Remove="uninstall" Wait="no" />
+      </Component>
+      <Files Include="!(bindpath.Server)**">
+        <Exclude Files="!(bindpath.Server)RiftLens.Server.exe" />
+        <Exclude Files="!(bindpath.Server)**\*.pdb" />
+        <Exclude Files="!(bindpath.Server)appsettings.Development.json" />
+      </Files>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

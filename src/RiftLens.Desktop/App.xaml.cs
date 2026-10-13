@@ -1,4 +1,5 @@
 using System.IO;
+using System.Net.Http;
 using System.Windows;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,15 @@ public partial class App : Application
             .WriteTo.File(Path.Combine(logDirectory, "desktop-.log"), rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7));
 
         var backend = builder.Configuration.GetSection(BackendOptions.SectionName).Get<BackendOptions>() ?? new BackendOptions();
+        if (backend.AccessKey.Length == 0)
+        {
+            // Installation tout-en-un : clé générée par le service local au premier démarrage (relue tant qu'absente).
+            backend.AccessKeyProvider = LocalServer.TryReadAccessKey;
+        }
+
+        var cacheDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RiftLens", "cache", "images");
+        builder.Services.AddSingleton(sp => new DiskAssetCache(sp.GetRequiredService<IHttpClientFactory>().CreateClient("assets"), cacheDirectory));
+        builder.Services.AddHttpClient("assets", c => c.Timeout = TimeSpan.FromSeconds(20));
         builder.Services.AddWpfBlazorWebView();
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();

@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using RiftLens.Contracts;
 
 namespace RiftLens.UI.Services;
 
@@ -12,8 +11,9 @@ public static class ServiceCollectionExtensions
             throw new InvalidOperationException("Backend:BaseUrl doit être en HTTPS pour un serveur distant.");
         }
 
-        services.AddHttpClient<IBackendStatus, HttpBackendStatus>(c => Configure(c, backend));
-        services.AddHttpClient<RiftLensApiClient>(c => Configure(c, backend))
+        services.AddTransient(_ => new AccessKeyHandler(backend));
+        services.AddHttpClient<IBackendStatus, HttpBackendStatus>(c => Configure(c, backend)).AddHttpMessageHandler<AccessKeyHandler>();
+        services.AddHttpClient<RiftLensApiClient>(c => Configure(c, backend)).AddHttpMessageHandler<AccessKeyHandler>()
             .ConfigureHttpClient(c => c.Timeout = TimeSpan.FromSeconds(60)); // première synchro d'un profil : jusqu'à ~20 matchs
         services.AddScoped<GameAssets>();
 
@@ -27,9 +27,5 @@ public static class ServiceCollectionExtensions
     {
         client.BaseAddress = backend.BaseUrl;
         client.Timeout = TimeSpan.FromSeconds(10);
-        if (backend.AccessKey.Length > 0)
-        {
-            client.DefaultRequestHeaders.Add(ApiConventions.AccessKeyHeader, backend.AccessKey);
-        }
     }
 }

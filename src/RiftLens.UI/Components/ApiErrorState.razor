@@ -1,6 +1,10 @@
 @* État vide adapté à l'erreur renvoyée par le backend. *@
 <EmptyState Title="@Title" IconName="@IconName" Description="@Description">
-    @if (OnRetry.HasDelegate && Error is not ApiError.NotFound)
+    @if (Error is ApiError.RiotKeyMissing or ApiError.RiotKeyInvalid)
+    {
+        <a class="rl-btn rl-btn--primary" href="setup">Configurer la clé Riot</a>
+    }
+    else if (OnRetry.HasDelegate && Error is not ApiError.NotFound)
     {
         <button class="rl-btn" @onclick="OnRetry">Réessayer</button>
     }
@@ -18,6 +22,7 @@
         ApiError.Offline => "Backend injoignable",
         ApiError.Unauthorized => "Clé d'accès refusée",
         ApiError.RiotKeyInvalid => "Clé Riot expirée",
+        ApiError.RiotKeyMissing => "Clé Riot à configurer",
         ApiError.RateLimited => "Quota Riot atteint",
         _ => "Une erreur est survenue",
     };
@@ -26,7 +31,8 @@
     {
         ApiError.Offline => "Vérifiez que le serveur RiftLens tourne et que Backend:BaseUrl est correct.",
         ApiError.Unauthorized => "La clé Backend:AccessKey du Desktop ne correspond à aucune clé du serveur.",
-        ApiError.RiotKeyInvalid => "La clé de développement Riot du serveur doit être régénérée (elle expire toutes les 24 h).",
+        ApiError.RiotKeyInvalid => "La clé de développement Riot doit être régénérée (elle expire toutes les 24 h) : Paramètres → Clé Riot.",
+        ApiError.RiotKeyMissing => "Terminez l'assistant de configuration pour renseigner votre clé API Riot.",
         ApiError.RateLimited => "Les requêtes reprendront automatiquement dans quelques secondes.",
         _ => Message,
     };

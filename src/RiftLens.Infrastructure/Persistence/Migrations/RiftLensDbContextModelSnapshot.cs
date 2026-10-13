@@ -227,6 +227,8 @@ namespace RiftLens.Infrastructure.Persistence.Migrations
 
                     b.HasKey("MatchId");
 
+                    b.HasIndex("GameStart");
+
                     b.HasIndex("PatchMajor", "PatchMinor", "QueueId");
 
                     b.ToTable("Matches", "rl");

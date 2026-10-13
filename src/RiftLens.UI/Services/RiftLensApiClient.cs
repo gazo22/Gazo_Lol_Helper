@@ -35,6 +35,26 @@ public sealed class RiftLensApiClient(HttpClient http)
     public Task<ApiResult<MatchupListDto>> GetMatchupsAsync(int championId, string? role, string elo, CancellationToken ct = default) =>
         GetAsync<MatchupListDto>(FormattableString.Invariant($"api/champions/{championId}/matchups?elo={Esc(elo)}") + Opt("role", role), ct);
 
+    /// <summary>Enregistre la clé Riot sur le serveur local. Renvoie null si OK, sinon le message d'erreur.</summary>
+    public async Task<string?> SetRiotKeyAsync(string key, CancellationToken ct = default)
+    {
+        try
+        {
+            using var response = await http.PutAsJsonAsync(new Uri("api/admin/riot-key", UriKind.Relative), new RiotKeyRequest(key), ct);
+            if (response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            var problem = await ReadProblemAsync(response, ct);
+            return problem.Title ?? $"Erreur {(int)response.StatusCode}.";
+        }
+        catch (HttpRequestException)
+        {
+            return "Serveur RiftLens injoignable.";
+        }
+    }
+
     private static string Opt(string name, string? value) => string.IsNullOrEmpty(value) ? string.Empty : $"&{name}={Esc(value)}";
 
     private async Task<ApiResult<T>> GetAsync<T>(string relative, CancellationToken ct)
@@ -55,6 +75,7 @@ public sealed class RiftLensApiClient(HttpClient http)
                 HttpStatusCode.Unauthorized => ApiResult.Fail<T>(ApiError.Unauthorized, problem.Title),
                 HttpStatusCode.TooManyRequests => ApiResult.Fail<T>(ApiError.RateLimited, problem.Title),
                 HttpStatusCode.ServiceUnavailable when problem.Code == "riot-key-invalid" => ApiResult.Fail<T>(ApiError.RiotKeyInvalid, problem.Title),
+                HttpStatusCode.ServiceUnavailable when problem.Code == "riot-key-missing" => ApiResult.Fail<T>(ApiError.RiotKeyMissing, problem.Title),
                 _ => ApiResult.Fail<T>(ApiError.Server, problem.Title),
             };
         }

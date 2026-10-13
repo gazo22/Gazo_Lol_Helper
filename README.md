@@ -6,6 +6,50 @@ et assistant de draft (LCU).
 > RiftLens n'est pas approuvé par Riot Games et ne reflète pas les opinions de Riot Games ou de toute
 > personne officiellement impliquée dans la production ou la gestion des propriétés de Riot Games.
 
+## Installation (Windows 10/11)
+
+1. Récupérer **`RiftLens-Setup.exe`** :
+   - onglet **Actions** du dépôt → workflow « Installeur Windows » → *Run workflow*, puis l'artefact
+     `RiftLens-Setup-x.y.z` une fois le build terminé ;
+   - ou la page **Releases** (créée automatiquement pour chaque tag `vX.Y.Z`).
+2. Lancer l'installeur (droits administrateur). Il installe, si nécessaire :
+   - **Microsoft Edge WebView2 Runtime** (déjà présent sur la plupart des Windows 10/11) ;
+   - **SQL Server 2022 Express**, instance dédiée `RIFTLENS` (téléchargement ~250 Mo, quelques minutes) ;
+   - **RiftLens** : l'application et le service Windows **« RiftLens Server »** (démarrage automatique).
+3. Au premier lancement, l'assistant demande votre **clé API Riot** :
+   connectez-vous sur [developer.riotgames.com](https://developer.riotgames.com), copiez la *Development API Key*
+   (`RGAPI-…`) et collez-la. Elle est vérifiée auprès de Riot puis stockée **chiffrée** (DPAPI) sur ce PC.
+   Une clé de développement expire après 24 h : un bandeau vous le signale, il suffit d'en coller une nouvelle
+   (Paramètres → Remplacer la clé).
+
+Rien d'autre à lancer : le service démarre avec Windows, collecte les parties high-elo en arrière-plan et
+l'application s'y connecte toute seule.
+
+### Désinstallation
+
+« Applications installées » → RiftLens. Le service et l'application sont supprimés ; sont conservés :
+`%ProgramData%\RiftLens` (clés, journaux) et SQL Server Express (instance `RIFTLENS`, désinstallable séparément,
+base `RiftLens`).
+
+### Dépannage
+
+| Symptôme | Piste |
+|---|---|
+| Bandeau « Serveur RiftLens injoignable » | `services.msc` → *RiftLens Server* démarré ? Journaux : `%ProgramData%\RiftLens\logs` |
+| « Clé API Riot expirée » | Normal après 24 h avec une clé de développement : Paramètres → Remplacer la clé |
+| Tier list vide | Le Collector a besoin de quelques heures de collecte (≈ 25 requêtes / min avec une clé perso) |
+| Draft : « Client non détecté » | Le client LoL doit tourner sur ce PC ; installation hors `C:\Riot Games` : `LocalClient:InstallPaths` |
+| Journaux de l'application | `%LocalAppData%\RiftLens\logs` |
+
+### Vérification manuelle d'une version
+
+1. Installer sur un Windows propre → WebView2, SQL Express et RiftLens s'installent, l'app se lance.
+2. L'assistant s'ouvre → coller une clé invalide (refusée) puis une clé valide (« Tout est prêt »).
+3. Ctrl+K → `Nom#TAG` → profil, historique, détail d'un match (graphe d'or).
+4. Quelques heures plus tard : tier list et pages champion remplies.
+5. Client LoL lancé → page Draft connectée ; imports runes / item set.
+6. Redémarrer Windows → le service redémarre seul ; désinstaller → service supprimé.
+
 ## Architecture
 
 | Projet | Rôle |
@@ -89,9 +133,16 @@ Réglages : sections `Collector` et `Stats` de `src/RiftLens.Collector/appsettin
 5. « Importer l'item set » → visible dans la boutique en jeu, onglet des objets recommandés.
 6. Fermer le client → retour à « Client non détecté », puis reconnexion automatique au redémarrage.
 
-## Démarrage
+## Développement
 
 Prérequis : .NET 10 SDK, Docker, Windows 10/11 + WebView2 pour le Desktop.
+
+L'Api (`src/RiftLens.Api`, assembly `RiftLens.Server`) fonctionne en deux modes :
+
+- **local** (`--LocalMode:Enabled=true`, utilisé par l'installeur) : service Windows sur `127.0.0.1:5080`,
+  Collector intégré au processus, SQL Express `.\RIFTLENS`, clé d'accès générée dans `%ProgramData%\RiftLens\access.key`,
+  clé Riot saisie dans l'assistant ;
+- **serveur** (Docker Compose ci-dessous) : Api et Collector séparés, secrets par variables d'environnement.
 
 ```bash
 cp .env.example .env            # renseigner SQL_SA_PASSWORD, RIOT_API_KEY, RIFTLENS_ACCESS_KEY
@@ -132,3 +183,16 @@ dotnet test
 ```
 
 Le projet WPF se compile aussi sous Linux/macOS (`EnableWindowsTargeting`), mais ne s'exécute que sous Windows.
+
+## Installeur
+
+`installer/` contient un projet WiX 5 : `Package` (MSI : fichiers, raccourcis, service) et `Bundle`
+(`RiftLens-Setup.exe` : WebView2 + SQL Express + MSI). WiX ne fonctionne que sous Windows ; le build est fait par
+`.github/workflows/release.yml`. En local sous Windows :
+
+```powershell
+dotnet publish src/RiftLens.Desktop -c Release -r win-x64 --self-contained -o artifacts/app
+dotnet publish src/RiftLens.Api -c Release -r win-x64 --self-contained -o artifacts/server
+# télécharger les deux programmes listés dans installer/Bundle/redist/README.md, puis :
+dotnet build installer/Bundle/RiftLens.Bundle.wixproj -c Release
+```

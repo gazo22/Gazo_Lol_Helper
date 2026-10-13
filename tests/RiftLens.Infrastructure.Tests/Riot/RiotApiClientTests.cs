@@ -8,14 +8,16 @@ using RiftLens.Infrastructure.Tests.Support;
 
 namespace RiftLens.Infrastructure.Tests.Riot;
 
-public class RiotApiClientTests
+public sealed class RiotApiClientTests
 {
-    private static (RiotApiClient Client, StubHttpHandler Stub) Create(Func<HttpRequestMessage, HttpResponseMessage> respond)
+    private TestKeyStore Keys { get; } = new("RGAPI-test");
+
+    private (RiotApiClient Client, StubHttpHandler Stub) Create(Func<HttpRequestMessage, HttpResponseMessage> respond)
     {
         var stub = new StubHttpHandler(respond);
         var rateOptions = Options.Create(new RiotRateLimitOptions { DefaultRetryAfter = TimeSpan.FromMilliseconds(1) });
         var limiter = new RiotRateLimiter(rateOptions, TimeProvider.System, NullLogger<RiotRateLimiter>.Instance);
-        var handler = new RiotRateLimitHandler(limiter, rateOptions, Options.Create(new RiotApiOptions { ApiKey = "RGAPI-test" }), TimeProvider.System)
+        var handler = new RiotRateLimitHandler(limiter, rateOptions, Keys, TimeProvider.System)
         {
             InnerHandler = stub,
         };
@@ -83,6 +85,43 @@ public class RiotApiClientTests
         Assert.Equal("/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5", stub.Requests[0].RequestUri!.AbsolutePath);
         Assert.EndsWith("&queue=420&startTime=1760000000", stub.Requests[1].RequestUri!.Query, StringComparison.Ordinal);
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => client.GetApexLeagueAsync(Platform.Euw1, RankTier.Diamond));
+    }
+
+    [Fact]
+    public async Task Sans_cle_aucune_requete_ne_part()
+    {
+        Keys.Key = null;
+        var (client, stub) = Create(_ => StubHttpHandler.Json("{}"));
+
+        var ex = await Assert.ThrowsAsync<RiotApiAuthException>(() => client.GetSummonerByPuuidAsync(Platform.Euw1, "x"));
+
+        Assert.True(ex.IsMissingKey);
+        Assert.Empty(stub.Requests);
+    }
+
+    [Fact]
+    public async Task Un_403_marque_la_cle_comme_refusee_et_un_200_comme_valide()
+    {
+        var status = HttpStatusCode.Forbidden;
+        var (client, _) = Create(_ => status == HttpStatusCode.OK ? StubHttpHandler.Json(Fixture.Read("riot/summoner.json")) : new HttpResponseMessage(status));
+
+        await Assert.ThrowsAsync<RiotApiAuthException>(() => client.GetSummonerByPuuidAsync(Platform.Euw1, "x"));
+        Assert.Equal(RiotKeyState.Rejected, Keys.State);
+
+        status = HttpStatusCode.OK;
+        await client.GetSummonerByPuuidAsync(Platform.Euw1, "x");
+        Assert.Equal(RiotKeyState.Valid, Keys.State);
+    }
+
+    [Fact]
+    public async Task Validation_d_une_cle_candidate_sans_toucher_a_la_cle_courante()
+    {
+        var (client, stub) = Create(r => r.Headers.GetValues("X-Riot-Token").Single() == "RGAPI-nouvelle" ? StubHttpHandler.Json("{}") : new HttpResponseMessage(HttpStatusCode.Forbidden));
+
+        Assert.True(await client.ValidateKeyAsync(Platform.Euw1, "RGAPI-nouvelle"));
+        Assert.False(await client.ValidateKeyAsync(Platform.Euw1, "RGAPI-perimee"));
+        Assert.Equal("/lol/status/v4/platform-data", stub.Requests[0].RequestUri!.AbsolutePath);
+        Assert.Equal(RiotKeyState.Unknown, Keys.State); // une clé candidate refusée n'invalide pas la clé en place
     }
 
     [Fact]

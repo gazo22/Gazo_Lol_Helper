@@ -1,0 +1,63 @@
+name: Installeur Windows
+
+# Produit RiftLens-Setup.exe (WebView2 + SQL Server Express + application + service local).
+# Manuel (onglet Actions), à chaque push sur main / branches de travail, ou sur un tag vX.Y.Z
+# (qui publie aussi une Release GitHub).
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main", "claude/**"]
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $v = if ("${{ github.ref_type }}" -eq "tag") { "${{ github.ref_name }}".TrimStart("v") } else { "1.0.${{ github.run_number }}" }
+          "value=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Tests
+        run: dotnet test RiftLens.sln -c Release
+
+      - name: Publish (self-contained win-x64)
+        shell: pwsh
+        run: |
+          $v = "${{ steps.version.outputs.value }}"
+          dotnet publish src/RiftLens.Desktop/RiftLens.Desktop.csproj -c Release -r win-x64 --self-contained -p:Version=$v -o artifacts/app
+          dotnet publish src/RiftLens.Api/RiftLens.Api.csproj -c Release -r win-x64 --self-contained -p:Version=$v -o artifacts/server
+
+      - name: Programmes d'installation Microsoft
+        shell: pwsh
+        run: |
+          $redist = "installer/Bundle/redist"
+          Invoke-WebRequest "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "$redist/MicrosoftEdgeWebview2Setup.exe"
+          Invoke-WebRequest "https://go.microsoft.com/fwlink/p/?linkid=2216019" -OutFile "$redist/SQL2022-SSEI-Expr.exe"
+
+      - name: Build installeur (WiX)
+        run: dotnet build installer/Bundle/RiftLens.Bundle.wixproj -c Release -p:Version=${{ steps.version.outputs.value }}
+
+      - name: Artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RiftLens-Setup-${{ steps.version.outputs.value }}
+          path: installer/Bundle/bin/x64/Release/RiftLens-Setup.exe
+
+      - name: Release GitHub
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: installer/Bundle/bin/x64/Release/RiftLens-Setup.exe
+          generate_release_notes: true

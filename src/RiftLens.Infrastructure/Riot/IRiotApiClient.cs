@@ -23,6 +23,9 @@ public interface IRiotApiClient
     Task<MatchDto?> GetMatchAsync(RegionalRoute route, string matchId, CancellationToken ct = default);
 
     Task<TimelineDto?> GetTimelineAsync(RegionalRoute route, string matchId, CancellationToken ct = default);
+
+    /// <summary>Teste une clé candidate (lol-status-v4) sans l'enregistrer. Renvoie false si Riot la refuse.</summary>
+    Task<bool> ValidateKeyAsync(Platform platform, string key, CancellationToken ct = default);
 }
 
 public sealed record MatchIdQuery(int Start = 0, int Count = 20, int? Queue = null, RequestPriority? Priority = null, DateTimeOffset? StartTime = null);

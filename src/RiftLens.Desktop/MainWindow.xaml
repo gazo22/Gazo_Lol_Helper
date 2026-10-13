@@ -4,7 +4,7 @@
         xmlns:blazor="clr-namespace:Microsoft.AspNetCore.Components.WebView.Wpf;assembly=Microsoft.AspNetCore.Components.WebView.Wpf"
         xmlns:ui="clr-namespace:RiftLens.UI;assembly=RiftLens.UI"
         Title="RiftLens" Width="1360" Height="860" MinWidth="1100" MinHeight="680"
-        Background="#05080F" WindowStartupLocation="CenterScreen">
+        Background="#05080F" WindowStartupLocation="CenterScreen" Icon="riftlens.ico">
   <blazor:BlazorWebView x:Name="WebView" HostPage="wwwroot\index.html">
     <blazor:BlazorWebView.RootComponents>
       <blazor:RootComponent Selector="#app" ComponentType="{x:Type ui:AppRouter}" />

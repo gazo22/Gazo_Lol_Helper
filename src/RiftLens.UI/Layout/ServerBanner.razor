@@ -1,0 +1,31 @@
+@using RiftLens.Contracts
+@implements IDisposable
+@inject IBackendStatus Backend
+
+@if (Message is { } message)
+{
+    <div class="rl-banner rl-banner--@message.Kind" role="alert">
+        <Icon Name="bolt" Class="rl-ico-16" />
+        <span>@message.Text</span>
+        @if (message.ShowSetup) { <a href="setup">Configurer</a> }
+    </div>
+}
+
+@code {
+    private sealed record BannerMessage(string Kind, string Text, bool ShowSetup);
+
+    protected override void OnInitialized() => Backend.Changed += OnChanged;
+
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private BannerMessage? Message => (Backend.State, Backend.ServerInfo?.RiotKey) switch
+    {
+        (BackendState.Offline, _) => new("error", "Serveur RiftLens injoignable. Vérifiez que le service « RiftLens Server » est démarré.", false),
+        (BackendState.Unauthorized, _) => new("error", "Le serveur refuse la clé d'accès de l'application.", false),
+        (BackendState.Online, RiotKeyStates.Missing) => new("warn", "Aucune clé API Riot n'est configurée : profils et statistiques sont indisponibles.", true),
+        (BackendState.Online, RiotKeyStates.Rejected) => new("warn", "Votre clé API Riot a expiré ou est invalide (les clés de développement durent 24 h).", true),
+        _ => null,
+    };
+
+    public void Dispose() => Backend.Changed -= OnChanged;
+}

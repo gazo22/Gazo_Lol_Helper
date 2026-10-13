@@ -25,4 +25,7 @@ public sealed class RiotApiAuthException : RiotApiException
     public RiotApiAuthException(string message, Exception inner) : base(message, inner) { }
 
     public RiotApiAuthException(HttpStatusCode statusCode, string message) : base(statusCode, message) { }
+
+    /// <summary>Aucune clé n'est configurée sur le serveur (assistant de premier lancement non terminé).</summary>
+    public bool IsMissingKey { get; init; }
 }
