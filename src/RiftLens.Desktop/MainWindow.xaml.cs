@@ -16,6 +16,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         _cache = services.GetRequiredService<DiskAssetCache>();
         WebView.Services = services;
+        WebView.BlazorWebViewInitializing += (_, e) => e.UserDataFolder = Path.Combine(App.LocalDataDirectory, "WebView2");
         WebView.BlazorWebViewInitialized += OnWebViewInitialized;
     }
 

@@ -14,11 +14,58 @@ public partial class App : Application
 {
     private IHost? _host;
 
+    internal static string LocalDataDirectory { get; } =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RiftLens");
+
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        DispatcherUnhandledException += (_, args) =>
+        {
+            ReportFatal(args.Exception);
+            args.Handled = true;
+            Shutdown(1);
+        };
+        AppDomain.CurrentDomain.UnhandledException += (_, args) => ReportFatal(args.ExceptionObject as Exception);
 
-        var logDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RiftLens", "logs");
+        try
+        {
+            await StartAsync();
+        }
+#pragma warning disable CA1031 // dernier rempart : afficher l'erreur plutôt que de quitter silencieusement
+        catch (Exception ex)
+#pragma warning restore CA1031
+        {
+            ReportFatal(ex);
+            Shutdown(1);
+        }
+    }
+
+    /// <summary>Écrit l'erreur dans %LocalAppData%\RiftLens\logs\crash.log et l'affiche.</summary>
+    private static void ReportFatal(Exception? ex)
+    {
+        var path = Path.Combine(LocalDataDirectory, "logs", "crash.log");
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.AppendAllText(path, $"[{DateTimeOffset.Now:O}] {ex}{Environment.NewLine}{Environment.NewLine}");
+        }
+        catch (IOException)
+        {
+            // On affiche quand même le message.
+        }
+
+        MessageBox.Show(
+            $"RiftLens n'a pas pu démarrer :\n\n{ex?.Message}\n\nDétails : {path}",
+            "RiftLens", MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+
+    private async Task StartAsync()
+    {
+        // WebView2 écrit son profil à côté de l'exe par défaut : impossible dans Program Files.
+        Environment.SetEnvironmentVariable("WEBVIEW2_USER_DATA_FOLDER", Path.Combine(LocalDataDirectory, "WebView2"));
+
+        var logDirectory = Path.Combine(LocalDataDirectory, "logs");
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
         {
             ContentRootPath = AppContext.BaseDirectory,
@@ -37,7 +84,7 @@ public partial class App : Application
             backend.AccessKeyProvider = LocalServer.TryReadAccessKey;
         }
 
-        var cacheDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RiftLens", "cache", "images");
+        var cacheDirectory = Path.Combine(LocalDataDirectory, "cache", "images");
         builder.Services.AddSingleton(sp => new DiskAssetCache(sp.GetRequiredService<IHttpClientFactory>().CreateClient("assets"), cacheDirectory));
         builder.Services.AddHttpClient("assets", c => c.Timeout = TimeSpan.FromSeconds(20));
         builder.Services.AddWpfBlazorWebView();
