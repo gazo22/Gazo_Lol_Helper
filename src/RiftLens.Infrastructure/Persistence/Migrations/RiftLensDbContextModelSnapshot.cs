@@ -23,6 +23,124 @@ namespace RiftLens.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("RiftLens.Domain.Entities.BuildStat", b =>
+                {
+                    b.Property<string>("Patch")
+                        .HasMaxLength(8)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<string>("Bucket")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("ChampionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Role")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<string>("ItemsKey")
+                        .HasMaxLength(32)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<int>("Games")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Wins")
+                        .HasColumnType("int");
+
+                    b.HasKey("Patch", "Bucket", "ChampionId", "Role", "ItemsKey");
+
+                    b.ToTable("BuildStats", "rl");
+                });
+
+            modelBuilder.Entity("RiftLens.Domain.Entities.ChampionBanStat", b =>
+                {
+                    b.Property<string>("Patch")
+                        .HasMaxLength(8)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<string>("Bucket")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("ChampionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Bans")
+                        .HasColumnType("int");
+
+                    b.HasKey("Patch", "Bucket", "ChampionId");
+
+                    b.ToTable("ChampionBanStats", "rl");
+                });
+
+            modelBuilder.Entity("RiftLens.Domain.Entities.ChampionStat", b =>
+                {
+                    b.Property<string>("Patch")
+                        .HasMaxLength(8)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<string>("Bucket")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("ChampionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Role")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<int>("Games")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Wins")
+                        .HasColumnType("int");
+
+                    b.HasKey("Patch", "Bucket", "ChampionId", "Role");
+
+                    b.ToTable("ChampionStats", "rl");
+                });
+
+            modelBuilder.Entity("RiftLens.Domain.Entities.CollectorPlayer", b =>
+                {
+                    b.Property<string>("Puuid")
+                        .HasMaxLength(78)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(78)");
+
+                    b.Property<DateTimeOffset?>("LastCrawledAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("LeaguePoints")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<DateTimeOffset>("SeenAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Tier")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.HasKey("Puuid");
+
+                    b.HasIndex("LastCrawledAt");
+
+                    b.ToTable("CollectorPlayers", "rl");
+                });
+
             modelBuilder.Entity("RiftLens.Domain.Entities.LeagueSnapshot", b =>
                 {
                     b.Property<long>("Id")
@@ -99,6 +217,10 @@ namespace RiftLens.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("QueueId")
                         .HasColumnType("int");
+
+                    b.Property<string>("SourceTier")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
 
                     b.Property<byte[]>("TimelineGzip")
                         .HasColumnType("varbinary(max)");
@@ -231,6 +353,60 @@ namespace RiftLens.Infrastructure.Persistence.Migrations
                     b.ToTable("MatchParticipants", "rl");
                 });
 
+            modelBuilder.Entity("RiftLens.Domain.Entities.MatchupStat", b =>
+                {
+                    b.Property<string>("Patch")
+                        .HasMaxLength(8)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<string>("Bucket")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Role")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<int>("ChampionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OpponentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Games")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Wins")
+                        .HasColumnType("int");
+
+                    b.HasKey("Patch", "Bucket", "Role", "ChampionId", "OpponentId");
+
+                    b.ToTable("MatchupStats", "rl");
+                });
+
+            modelBuilder.Entity("RiftLens.Domain.Entities.PatchTotals", b =>
+                {
+                    b.Property<string>("Patch")
+                        .HasMaxLength(8)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<string>("Bucket")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<DateTimeOffset>("ComputedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Matches")
+                        .HasColumnType("int");
+
+                    b.HasKey("Patch", "Bucket");
+
+                    b.ToTable("PatchTotals", "rl");
+                });
+
             modelBuilder.Entity("RiftLens.Domain.Entities.Player", b =>
                 {
                     b.Property<string>("Puuid")
@@ -267,6 +443,73 @@ namespace RiftLens.Infrastructure.Persistence.Migrations
                     b.HasIndex("GameName", "TagLine");
 
                     b.ToTable("Players", "rl");
+                });
+
+            modelBuilder.Entity("RiftLens.Domain.Entities.QueuedMatch", b =>
+                {
+                    b.Property<string>("MatchId")
+                        .HasMaxLength(32)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("EnqueuedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("SourceTier")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.HasKey("MatchId");
+
+                    b.HasIndex("Status", "EnqueuedAt");
+
+                    b.ToTable("QueuedMatches", "rl");
+                });
+
+            modelBuilder.Entity("RiftLens.Domain.Entities.RuneStat", b =>
+                {
+                    b.Property<string>("Patch")
+                        .HasMaxLength(8)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<string>("Bucket")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("ChampionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Role")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<string>("PerksKey")
+                        .HasMaxLength(80)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(80)");
+
+                    b.Property<int>("Games")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Wins")
+                        .HasColumnType("int");
+
+                    b.HasKey("Patch", "Bucket", "ChampionId", "Role", "PerksKey");
+
+                    b.ToTable("RuneStats", "rl");
                 });
 
             modelBuilder.Entity("RiftLens.Domain.Entities.LeagueSnapshot", b =>

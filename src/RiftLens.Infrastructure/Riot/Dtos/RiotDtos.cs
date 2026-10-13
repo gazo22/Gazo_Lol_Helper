@@ -23,6 +23,10 @@ public sealed record LeagueEntryDto(
     bool FreshBlood,
     bool Inactive);
 
+public sealed record LeagueListDto(string? LeagueId, string Tier, string Queue, IReadOnlyList<LeagueItemDto> Entries);
+
+public sealed record LeagueItemDto(string Puuid, int LeaguePoints, string? Rank, int Wins, int Losses);
+
 // Champion-Mastery-V4
 public sealed record ChampionMasteryDto(string Puuid, int ChampionId, int ChampionLevel, int ChampionPoints, long LastPlayTime);
 
@@ -103,6 +107,7 @@ public sealed record ParticipantFrameDto(int ParticipantId, int TotalGold, int L
 [JsonSerializable(typeof(AccountDto))]
 [JsonSerializable(typeof(SummonerDto))]
 [JsonSerializable(typeof(IReadOnlyList<LeagueEntryDto>))]
+[JsonSerializable(typeof(LeagueListDto))]
 [JsonSerializable(typeof(IReadOnlyList<ChampionMasteryDto>))]
 [JsonSerializable(typeof(IReadOnlyList<string>))]
 [JsonSerializable(typeof(MatchDto))]

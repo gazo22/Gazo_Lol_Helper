@@ -11,6 +11,14 @@ public sealed class RiftLensDbContext(DbContextOptions<RiftLensDbContext> option
     public DbSet<Match> Matches => Set<Match>();
     public DbSet<MatchParticipant> MatchParticipants => Set<MatchParticipant>();
     public DbSet<MatchBan> MatchBans => Set<MatchBan>();
+    public DbSet<CollectorPlayer> CollectorPlayers => Set<CollectorPlayer>();
+    public DbSet<QueuedMatch> QueuedMatches => Set<QueuedMatch>();
+    public DbSet<PatchTotals> PatchTotals => Set<PatchTotals>();
+    public DbSet<ChampionStat> ChampionStats => Set<ChampionStat>();
+    public DbSet<ChampionBanStat> ChampionBanStats => Set<ChampionBanStat>();
+    public DbSet<MatchupStat> MatchupStats => Set<MatchupStat>();
+    public DbSet<BuildStat> BuildStats => Set<BuildStat>();
+    public DbSet<RuneStat> RuneStats => Set<RuneStat>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

@@ -12,6 +12,9 @@ public sealed class Match
     public TimeSpan Duration { get; init; }
     public bool IsRemake { get; init; }
 
+    /// <summary>Tier du joueur ladder par lequel le Collector a trouvé ce match (null si consulté via un profil).</summary>
+    public ValueObjects.RankTier? SourceTier { get; set; }
+
     /// <summary>Timeline brute (JSON compressé gzip), chargée à la demande.</summary>
     public byte[]? TimelineGzip { get; set; }
 

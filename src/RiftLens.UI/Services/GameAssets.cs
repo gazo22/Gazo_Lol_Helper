@@ -8,6 +8,7 @@ public sealed class GameAssets(RiftLensApiClient api) : IDisposable
     private const string Cdn = "https://ddragon.leagueoflegends.com/cdn";
     private readonly SemaphoreSlim _lock = new(1, 1);
     private StaticManifestDto _manifest = StaticManifestDto.Empty;
+    private List<(int Id, string Key, string Name)>? _champions;
 
     public bool IsLoaded => _manifest.Version.Length > 0;
 
@@ -26,6 +27,7 @@ public sealed class GameAssets(RiftLensApiClient api) : IDisposable
             if (!IsLoaded && await api.GetStaticManifestAsync(ct) is { IsSuccess: true } result)
             {
                 _manifest = result.Value!;
+                _champions = null;
             }
         }
         finally
@@ -35,6 +37,13 @@ public sealed class GameAssets(RiftLensApiClient api) : IDisposable
     }
 
     public void Dispose() => _lock.Dispose();
+
+    /// <summary>Tous les champions, triés par nom.</summary>
+    public IReadOnlyList<(int Id, string Key, string Name)> Champions =>
+        _champions ??= _manifest.Champions.Select(c => (c.Key, c.Value.Key, c.Value.Name)).OrderBy(c => c.Name, StringComparer.CurrentCulture).ToList();
+
+    public int? ChampionIdByKey(string key) =>
+        _manifest.Champions.FirstOrDefault(c => string.Equals(c.Value.Key, key, StringComparison.OrdinalIgnoreCase)).Key is var id and > 0 ? id : null;
 
     public string ChampionName(int id) => _manifest.Champions.TryGetValue(id, out var c) ? c.Name : $"#{id}";
 

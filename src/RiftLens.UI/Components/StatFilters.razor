@@ -1,0 +1,55 @@
+@using RiftLens.Contracts
+@* Barre de filtres partagée : rôle (optionnel), patch, elo. *@
+<div class="rl-filters">
+    @if (ShowRoles)
+    {
+        <div class="rl-segmented" role="tablist" aria-label="Rôle">
+            @if (AllowAllRoles)
+            {
+                <button role="tab" aria-selected="@(Role is null)" class="@(Role is null ? "is-active" : null)" @onclick="() => SetRole(null)">Tous</button>
+            }
+            @foreach (var r in AvailableRoles ?? Roles)
+            {
+                var role = r;
+                <button role="tab" aria-selected="@(Role == role)" class="@(Role == role ? "is-active" : null)" title="@Fmt.RoleLabel(role)" @onclick="() => SetRole(role)">
+                    <RoleIcon Role="@role" /><span>@Fmt.RoleLabel(role)</span>
+                </button>
+            }
+        </div>
+    }
+    <div class="rl-filters__right">
+        @ChildContent
+        <label class="rl-select">
+            <span>Patch</span>
+            <select value="@Patch" @onchange="e => PatchChanged.InvokeAsync(e.Value?.ToString())">
+                @foreach (var p in Patches) { <option value="@p">@p</option> }
+            </select>
+        </label>
+        <label class="rl-select">
+            <span>Elo</span>
+            <select value="@Elo" @onchange="e => EloChanged.InvokeAsync(e.Value?.ToString() ?? EloFilters.MasterPlus)">
+                <option value="@EloFilters.MasterPlus">Master+</option>
+                <option value="@EloFilters.GrandmasterPlus">Grandmaster+</option>
+                <option value="@EloFilters.Challenger">Challenger</option>
+            </select>
+        </label>
+    </div>
+</div>
+
+@code {
+    public static readonly string[] Roles = ["Top", "Jungle", "Middle", "Bottom", "Support"];
+
+    [Parameter] public bool ShowRoles { get; set; } = true;
+    [Parameter] public bool AllowAllRoles { get; set; } = true;
+    [Parameter] public IReadOnlyList<string>? AvailableRoles { get; set; }
+    [Parameter] public string? Role { get; set; }
+    [Parameter] public EventCallback<string?> RoleChanged { get; set; }
+    [Parameter] public IReadOnlyList<string> Patches { get; set; } = [];
+    [Parameter] public string? Patch { get; set; }
+    [Parameter] public EventCallback<string?> PatchChanged { get; set; }
+    [Parameter] public string Elo { get; set; } = EloFilters.MasterPlus;
+    [Parameter] public EventCallback<string> EloChanged { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private Task SetRole(string? role) => RoleChanged.InvokeAsync(role);
+}

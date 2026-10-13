@@ -49,6 +49,23 @@ mais ont été écrites hors ligne. Pour les remplacer par de vraies réponses :
 $env:RIOT_API_KEY = "RGAPI-..."; ./tools/capture-riot-fixtures.ps1 -GameName "Nom" -TagLine "EUW"
 ```
 
+## Collector & tier list
+
+Le Collector (`RiftLens.Collector`) tourne en boucle :
+
+1. **Seed** (toutes les 6 h) : ladders Challenger / Grandmaster / Master d'EUW (League-V4).
+2. **Crawl** : les joueurs les moins récemment visités → ids des parties classées solo des 7 derniers jours,
+   mis dans une file persistante (`rl.QueuedMatches`).
+3. **Fetch** : téléchargement des matchs en attente (un match déjà en base n'est jamais redemandé ;
+   3 tentatives avant abandon).
+4. **Aggregate** (toutes les 30 min) : recalcul idempotent des statistiques des 2 derniers patchs.
+
+Tout l'état est en base : un arrêt (Ctrl+C, redémarrage Docker) reprend exactement là où il s'était arrêté.
+Avec 60 % d'une clé perso, comptez au plus ~25 requêtes/min (crawl + matchs) ; une tier list exploitable demande quelques heures de collecte.
+Le calcul du tier est documenté dans [`docs/tier-score.md`](docs/tier-score.md).
+
+Réglages : sections `Collector` et `Stats` de `src/RiftLens.Collector/appsettings.json`.
+
 ## Démarrage
 
 Prérequis : .NET 10 SDK, Docker, Windows 10/11 + WebView2 pour le Desktop.

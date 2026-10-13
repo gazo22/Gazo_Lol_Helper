@@ -51,6 +51,7 @@ app.MapHealthChecks("/health");
 app.MapMetaEndpoints();
 app.MapPlayerEndpoints();
 app.MapMatchEndpoints();
+app.MapStatsEndpoints();
 
 if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
 {

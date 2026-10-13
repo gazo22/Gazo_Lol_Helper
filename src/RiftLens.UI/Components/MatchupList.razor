@@ -1,0 +1,28 @@
+@using RiftLens.Contracts
+@inject GameAssets Game
+
+@if (Items.Count == 0)
+{
+    <div class="rl-chart-empty">Aucun matchup avec au moins @MinGames parties.</div>
+}
+<ul class="rl-matchups">
+    @foreach (var m in Items)
+    {
+        <li>
+            @if (Game.ChampionKey(m.OpponentId) is { } key)
+            {
+                <a href="@Routes.Champion(key)" class="rl-matchups__champ">
+                    <ChampionIcon Src="@Game.ChampionIcon(m.OpponentId)" Name="@Game.ChampionName(m.OpponentId)" Size="28" />
+                    <span>@Game.ChampionName(m.OpponentId)</span>
+                </a>
+            }
+            <WinrateBar Winrate="m.Winrate" Games="m.Games" />
+            <small class="rl-muted rl-num-cell">@Fmt.Num(m.Games)</small>
+        </li>
+    }
+</ul>
+
+@code {
+    [Parameter] public IReadOnlyList<MatchupDto> Items { get; set; } = [];
+    [Parameter] public int MinGames { get; set; }
+}

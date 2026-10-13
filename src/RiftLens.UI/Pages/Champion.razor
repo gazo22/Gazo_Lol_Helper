@@ -1,0 +1,159 @@
+@page "/champions/{Key}"
+@using RiftLens.Contracts
+@inject RiftLensApiClient Api
+@inject GameAssets Game
+@inject NavigationManager Nav
+
+<PageTitle>@(_championId is { } id ? Game.ChampionName(id) : Key) · RiftLens</PageTitle>
+
+<div class="rl-page">
+    @if (_championId is not { } champId)
+    {
+        @if (Game.IsLoaded)
+        {
+            <Card NoPadding="true"><EmptyState Title="Champion inconnu" IconName="search" Description="@($"Aucun champion « {Key} » dans les données du patch.")" /></Card>
+        }
+        else { <Skeleton Height="220px" /> }
+    }
+    else
+    {
+        var s = _detail?.Summary;
+        <section class="rl-hero rl-hero--champion">
+            <div class="rl-hero__bg" style="background-image:url('@Game.ChampionSplash(champId)')"></div>
+            <div class="rl-hero__content">
+                <ChampionIcon Src="@Game.ChampionIcon(champId)" Name="@Game.ChampionName(champId)" Size="88" />
+                <div class="rl-hero__identity">
+                    <h1 class="rl-hero__name">@Game.ChampionName(champId)</h1>
+                    <div class="rl-hero__sub">
+                        @if (_detail is not null)
+                        {
+                            <span class="rl-tier-row__role"><RoleIcon Role="@_detail.Role" /> @Fmt.RoleLabel(_detail.Role)</span>
+                            <span>Patch @_detail.Patch</span>
+                            <span>@Fmt.Num(s?.Games ?? 0) parties analysées</span>
+                        }
+                    </div>
+                </div>
+                @if (s is not null)
+                {
+                    <div class="rl-hero__tier">
+                        <TierBadge Tier="@s.Tier" />
+                        <small>Score @s.Score.ToString("0.000", CultureInfo.CurrentCulture)</small>
+                    </div>
+                }
+            </div>
+        </section>
+
+        <StatFilters AllowAllRoles="false" AvailableRoles="@_detail?.Roles.Select(r => r.Role).ToList()" Role="@(_detail?.Role ?? Role)" RoleChanged="r => Navigate(r, Patch, Elo)"
+                     Patches="_patches" Patch="@(_detail?.Patch ?? Patch)" PatchChanged="p => Navigate(_detail?.Role ?? Role, p, Elo)"
+                     Elo="@(Elo ?? EloFilters.MasterPlus)" EloChanged="e => Navigate(_detail?.Role ?? Role, Patch, e)" />
+
+        @if (_loading)
+        {
+            <div class="rl-grid rl-grid--4" style="margin-bottom:var(--rl-space-6)">@for (var i = 0; i < 4; i++) { <StatTile Label="…" Loading="true" /> }</div>
+            <div class="rl-grid rl-grid--2"><Skeleton Height="260px" /><Skeleton Height="260px" /></div>
+        }
+        else if (_detail is null)
+        {
+            <Card NoPadding="true">
+                @if (_error is ApiError.NotFound or ApiError.None)
+                {
+                    <EmptyState Title="Pas de données pour ce filtre" IconName="champion" Description="Le Collector n'a pas encore observé ce champion sur ce patch / elo." />
+                }
+                else { <ApiErrorState Error="_error" OnRetry="LoadAsync" /> }
+            </Card>
+        }
+        else
+        {
+            <div class="rl-grid rl-grid--4" style="margin-bottom:var(--rl-space-6)">
+                <StatTile Label="Winrate" Value="@(s is null ? "—" : Fmt.Percent(s.Winrate))" Hint="@(s is null ? null : $"{Fmt.Num(s.Wins)} V – {Fmt.Num(s.Games - s.Wins)} D")" Trend="@(s is null ? 0 : s.Winrate >= 0.5 ? 1 : -1)" />
+                <StatTile Label="Pickrate" Value="@(s is null ? "—" : Fmt.Percent(s.Pickrate))" Hint="@($"sur {Fmt.Num(_detail.TotalMatches)} parties")" />
+                <StatTile Label="Banrate" Value="@(s is null ? "—" : Fmt.Percent(s.Banrate))" />
+                <StatTile Label="Parties dans ce rôle" Value="@Fmt.Num(s?.Games ?? 0)" Hint="@(s?.SampleTooSmall == true ? "Échantillon faible : à prendre avec prudence" : null)" Trend="@(s?.SampleTooSmall == true ? -1 : 0)" />
+            </div>
+
+            <div class="rl-champ-layout">
+                <Card Title="Builds les plus joués">
+                    @if (_detail.Builds.Count == 0) { <div class="rl-chart-empty">Pas encore assez de parties (≥ @_detail.MinBuildGames par build).</div> }
+                    <ul class="rl-build-list">
+                        @foreach (var b in _detail.Builds)
+                        {
+                            <li>
+                                <div class="rl-build-list__items">
+                                    @for (var i = 0; i < b.Items.Count; i++)
+                                    {
+                                        @if (i > 0) { <Icon Name="arrow-right" Class="rl-ico-12 rl-muted" /> }
+                                        <ItemSlot Src="@Game.ItemIcon(b.Items[i])" Name="@Game.ItemName(b.Items[i])" Size="34" />
+                                    }
+                                </div>
+                                <WinrateBar Winrate="b.Winrate" Games="b.Games" />
+                                <small class="rl-muted rl-num-cell">@Fmt.Num(b.Games)</small>
+                            </li>
+                        }
+                    </ul>
+                </Card>
+
+                <Card Title="Runes">
+                    @if (_detail.RunePages.Count == 0) { <div class="rl-chart-empty">Pas encore assez de parties (≥ @_detail.MinBuildGames par page).</div> }
+                    <ul class="rl-build-list">
+                        @foreach (var r in _detail.RunePages)
+                        {
+                            <li>
+                                <RuneTree Expanded="true" Perks="r.Perks" SubStyle="r.SubStyle" Keystone="@r.Perks.ElementAtOrDefault(0)" />
+                                <WinrateBar Winrate="r.Winrate" Games="r.Games" />
+                                <small class="rl-muted rl-num-cell">@Fmt.Num(r.Games)</small>
+                            </li>
+                        }
+                    </ul>
+                </Card>
+
+                <Card Title="Matchups favorables">
+                    <MatchupList Items="_detail.BestMatchups" MinGames="_detail.MinMatchupGames" />
+                </Card>
+                <Card Title="Matchups difficiles">
+                    <MatchupList Items="_detail.WorstMatchups" MinGames="_detail.MinMatchupGames" />
+                </Card>
+            </div>
+            <p class="rl-footnote">
+                Taille d'échantillon affichée pour chaque ligne. Builds : 3 premiers objets légendaires (hors bottes).
+                Matchups classés par intervalle de confiance de Wilson, minimum @_detail.MinMatchupGames parties.
+            </p>
+        }
+    }
+</div>
+
+@code {
+    private int? _championId;
+    private ChampionDetailDto? _detail;
+    private IReadOnlyList<string> _patches = [];
+    private bool _loading = true;
+    private ApiError _error;
+
+    [Parameter] public string Key { get; set; } = string.Empty;
+    [SupplyParameterFromQuery] public string? Role { get; set; }
+    [SupplyParameterFromQuery] public string? Patch { get; set; }
+    [SupplyParameterFromQuery] public string? Elo { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await Game.EnsureLoadedAsync();
+        _championId = Game.ChampionIdByKey(Key);
+        if (_patches.Count == 0 && await Api.GetStatPatchesAsync() is { IsSuccess: true } patches)
+        {
+            _patches = patches.Value!.Patches;
+        }
+
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (_championId is not { } id) { _loading = false; return; }
+
+        _loading = true;
+        var result = await Api.GetChampionAsync(id, Patch, Role, Elo ?? EloFilters.MasterPlus);
+        (_detail, _error, _loading) = (result.Value, result.Error, false);
+    }
+
+    private void Navigate(string? role, string? patch, string? elo) =>
+        Nav.NavigateTo(Nav.GetUriWithQueryParameters(new Dictionary<string, object?> { ["role"] = role, ["patch"] = patch, ["elo"] = elo }));
+}

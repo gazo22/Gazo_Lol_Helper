@@ -1,0 +1,13 @@
+<th class="rl-sort @(Sort.Column == Column ? "is-sorted" : null) @(Numeric ? "rl-num-cell" : null)" title="@Title"
+    aria-sort="@(Sort.Column != Column ? "none" : Sort.Descending ? "descending" : "ascending")" @onclick="() => OnSort.InvokeAsync(Column)">
+    @Label<span class="rl-sort__arrow">@(Sort.Column != Column ? "↕" : Sort.Descending ? "↓" : "↑")</span>
+</th>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Column { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public SortState Sort { get; set; } = new("score", true);
+    [Parameter] public EventCallback<string> OnSort { get; set; }
+    [Parameter] public bool Numeric { get; set; }
+    [Parameter] public string? Title { get; set; }
+}

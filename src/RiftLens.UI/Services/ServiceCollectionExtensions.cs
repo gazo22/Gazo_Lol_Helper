@@ -19,6 +19,7 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<CommandPaletteState>();
         services.AddSingleton<IPaletteSource, NavigationPaletteSource>();
+        services.AddScoped<IPaletteSource, ChampionPaletteSource>();
         return services;
     }
 

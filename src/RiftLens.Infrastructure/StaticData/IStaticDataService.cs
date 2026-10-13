@@ -6,4 +6,6 @@ namespace RiftLens.Infrastructure.StaticData;
 public interface IStaticDataService
 {
     Task<StaticManifestDto> GetManifestAsync(CancellationToken cancellationToken = default);
+
+    Task<ItemCategories> GetItemCategoriesAsync(CancellationToken cancellationToken = default);
 }

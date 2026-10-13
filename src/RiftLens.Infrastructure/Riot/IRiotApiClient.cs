@@ -13,6 +13,9 @@ public interface IRiotApiClient
 
     Task<IReadOnlyList<LeagueEntryDto>> GetLeagueEntriesByPuuidAsync(Platform platform, string puuid, CancellationToken ct = default);
 
+    /// <summary>Ladder Challenger / Grandmaster / Master de la file solo.</summary>
+    Task<LeagueListDto?> GetApexLeagueAsync(Platform platform, RankTier tier, CancellationToken ct = default);
+
     Task<IReadOnlyList<ChampionMasteryDto>> GetTopMasteriesAsync(Platform platform, string puuid, int count, CancellationToken ct = default);
 
     Task<IReadOnlyList<string>> GetMatchIdsAsync(RegionalRoute route, string puuid, MatchIdQuery query, CancellationToken ct = default);
@@ -22,4 +25,4 @@ public interface IRiotApiClient
     Task<TimelineDto?> GetTimelineAsync(RegionalRoute route, string matchId, CancellationToken ct = default);
 }
 
-public sealed record MatchIdQuery(int Start = 0, int Count = 20, int? Queue = null, RequestPriority? Priority = null);
+public sealed record MatchIdQuery(int Start = 0, int Count = 20, int? Queue = null, RequestPriority? Priority = null, DateTimeOffset? StartTime = null);

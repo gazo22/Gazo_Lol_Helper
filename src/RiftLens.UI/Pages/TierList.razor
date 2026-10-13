@@ -1,4 +1,8 @@
 @page "/tierlist"
+@using RiftLens.Contracts
+@inject RiftLensApiClient Api
+@inject GameAssets Game
+@inject NavigationManager Nav
 
 <PageTitle>Tier list · RiftLens</PageTitle>
 
@@ -6,10 +10,165 @@
     <div class="rl-page__header">
         <div>
             <h1 class="rl-page__title">Tier list</h1>
-            <div class="rl-page__subtitle">Champions classés par rôle, patch et elo.</div>
+            <div class="rl-page__subtitle">
+                @if (_list is not null)
+                {
+                    <span>Patch @_list.Patch · @Fmt.Num(_list.TotalMatches) parties classées solo EUW · @EloLabel(_list.Elo)</span>
+                }
+                else { <span>Classement par rôle, calculé sur les parties high-elo collectées.</span> }
+            </div>
         </div>
+        <a class="rl-link-muted" href="about#tier-score"><Icon Name="info" Class="rl-ico-16" /> Comment le tier est calculé</a>
     </div>
-    <Card NoPadding="true">
-        <EmptyState Title="Bientôt disponible" IconName="tier" Description="Le Collector agrégera les parties Master+ d'EUW (phase 3)." />
+
+    <StatFilters Role="@_role" RoleChanged="OnRoleChanged" Patches="_patches" Patch="@_patch" PatchChanged="OnPatchChanged" Elo="@_elo" EloChanged="OnEloChanged">
+        <label class="rl-search-field">
+            <Icon Name="search" Class="rl-ico-16" />
+            <input placeholder="Filtrer un champion" value="@_search" @oninput="e => _search = e.Value?.ToString() ?? string.Empty" />
+        </label>
+    </StatFilters>
+
+    <Card NoPadding="true" Class="rl-tier-card">
+        @if (_loading)
+        {
+            <div style="padding:var(--rl-space-4);display:grid;gap:10px">
+                @for (var i = 0; i < 10; i++) { <Skeleton Height="40px" /> }
+            </div>
+        }
+        else if (_list is null)
+        {
+            @if (_error is ApiError.NotFound or ApiError.None)
+            {
+                <EmptyState Title="Pas encore de statistiques" IconName="tier"
+                            Description="Le Collector n'a pas encore agrégé de parties pour ce filtre. Laissez-le tourner : la tier list se remplit au fil des cycles (toutes les 30 min)." />
+            }
+            else
+            {
+                <ApiErrorState Error="_error" OnRetry="LoadAsync" />
+            }
+        }
+        else
+        {
+            <table class="rl-table rl-tier-table">
+                <thead>
+                    <tr>
+                        <th class="rl-col-rank">#</th>
+                        <SortHeader Label="Champion" Column="name" Sort="_sort" OnSort="SortBy" />
+                        @if (_role is null) { <th>Rôle</th> }
+                        <SortHeader Label="Tier" Column="score" Sort="_sort" OnSort="SortBy" Title="Score : borne basse de Wilson du winrate + bonus de popularité" />
+                        <SortHeader Label="Winrate" Column="winrate" Sort="_sort" OnSort="SortBy" />
+                        <SortHeader Label="Pickrate" Column="pickrate" Sort="_sort" OnSort="SortBy" Numeric="true" />
+                        <SortHeader Label="Banrate" Column="banrate" Sort="_sort" OnSort="SortBy" Numeric="true" />
+                        <SortHeader Label="Parties" Column="games" Sort="_sort" OnSort="SortBy" Numeric="true" />
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ var rank = 0; }
+                    @foreach (var row in Rows)
+                    {
+                        rank++;
+                        var r = row;
+                        <tr class="rl-tier-row" @onclick="() => Open(r)">
+                            <td class="rl-col-rank">@rank</td>
+                            <td>
+                                <div class="rl-tier-row__champ">
+                                    <ChampionIcon Src="@Game.ChampionIcon(r.ChampionId)" Name="@Game.ChampionName(r.ChampionId)" Size="32" />
+                                    <b>@Game.ChampionName(r.ChampionId)</b>
+                                </div>
+                            </td>
+                            @if (_role is null) { <td><span class="rl-tier-row__role"><RoleIcon Role="@r.Role" /> @Fmt.RoleLabel(r.Role)</span></td> }
+                            <td>
+                                <TierBadge Tier="@r.Tier" />
+                                @if (r.SampleTooSmall) { <span class="rl-pill rl-pill--warn" title="Moins de @_list.MinGames parties : tier plafonné à B">échantillon faible</span> }
+                            </td>
+                            <td><WinrateBar Winrate="r.Winrate" Games="r.Games" /></td>
+                            <td class="rl-num-cell">@Fmt.Percent(r.Pickrate)</td>
+                            <td class="rl-num-cell">@Fmt.Percent(r.Banrate)</td>
+                            <td class="rl-num-cell rl-muted">@Fmt.Num(r.Games)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            @if (!Rows.Any())
+            {
+                <EmptyState Title="Aucun champion" IconName="search" Description="Aucun champion ne correspond à ce filtre." />
+            }
+        }
     </Card>
 </div>
+
+@code {
+    private TierListDto? _list;
+    private IReadOnlyList<string> _patches = [];
+    private string? _patch;
+    private string? _role;
+    private string _elo = EloFilters.MasterPlus;
+    private string _search = string.Empty;
+    private SortState _sort = new("score", true);
+    private bool _loading = true;
+    private ApiError _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Game.EnsureLoadedAsync();
+        if (await Api.GetStatPatchesAsync() is { IsSuccess: true } patches)
+        {
+            _patches = patches.Value!.Patches;
+            _patch = _patches.FirstOrDefault();
+        }
+
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        var result = await Api.GetTierListAsync(_patch, _role, _elo);
+        (_list, _error, _loading) = (result.Value, result.Error, false);
+    }
+
+    private IEnumerable<TierListRowDto> Rows
+    {
+        get
+        {
+            var rows = _list?.Rows ?? [];
+            var filtered = _search.Length == 0
+                ? rows
+                : rows.Where(r => Game.ChampionName(r.ChampionId).Contains(_search, StringComparison.CurrentCultureIgnoreCase));
+            Func<TierListRowDto, IComparable> key = _sort.Column switch
+            {
+                "name" => r => Game.ChampionName(r.ChampionId),
+                "winrate" => r => r.Winrate,
+                "pickrate" => r => r.Pickrate,
+                "banrate" => r => r.Banrate,
+                "games" => r => r.Games,
+                _ => r => r.Score,
+            };
+            return _sort.Descending ? filtered.OrderByDescending(key) : filtered.OrderBy(key);
+        }
+    }
+
+    private void SortBy(string column) =>
+        _sort = _sort.Column == column ? _sort with { Descending = !_sort.Descending } : new SortState(column, column != "name");
+
+    private async Task OnRoleChanged(string? role) { _role = role; await LoadAsync(); }
+
+    private async Task OnPatchChanged(string? patch) { _patch = patch; await LoadAsync(); }
+
+    private async Task OnEloChanged(string elo) { _elo = elo; await LoadAsync(); }
+
+    private void Open(TierListRowDto row)
+    {
+        if (Game.ChampionKey(row.ChampionId) is { } key)
+        {
+            Nav.NavigateTo($"{Routes.Champion(key)}?role={row.Role}&elo={_elo}{(_patch is null ? string.Empty : $"&patch={_patch}")}");
+        }
+    }
+
+    private static string EloLabel(string elo) => elo switch
+    {
+        EloFilters.Challenger => "Challenger",
+        EloFilters.GrandmasterPlus => "Grandmaster+",
+        _ => "Master+",
+    };
+}

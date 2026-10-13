@@ -27,11 +27,22 @@ internal sealed class FixtureRiotClient : IRiotApiClient
     public Task<IReadOnlyList<LeagueEntryDto>> GetLeagueEntriesByPuuidAsync(Platform platform, string puuid, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<LeagueEntryDto>>(Load<List<LeagueEntryDto>>("riot/league-entries.json"));
 
+    public int MatchIdCalls { get; private set; }
+
+    public Task<LeagueListDto?> GetApexLeagueAsync(Platform platform, RankTier tier, CancellationToken ct = default) =>
+        Task.FromResult(tier == RankTier.Challenger ? Load<LeagueListDto>("riot/challenger-league.json") : null);
+
     public Task<IReadOnlyList<ChampionMasteryDto>> GetTopMasteriesAsync(Platform platform, string puuid, int count, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<ChampionMasteryDto>>(Load<List<ChampionMasteryDto>>("riot/masteries.json"));
 
-    public Task<IReadOnlyList<string>> GetMatchIdsAsync(RegionalRoute route, string puuid, MatchIdQuery query, CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<string>>(MatchIds.Skip(query.Start).Take(query.Count).ToList());
+    public Func<string, IReadOnlyList<string>>? MatchIdsByPuuid { get; set; }
+
+    public Task<IReadOnlyList<string>> GetMatchIdsAsync(RegionalRoute route, string puuid, MatchIdQuery query, CancellationToken ct = default)
+    {
+        MatchIdCalls++;
+        var ids = MatchIdsByPuuid?.Invoke(puuid) ?? MatchIds;
+        return Task.FromResult<IReadOnlyList<string>>(ids.Skip(query.Start).Take(query.Count).ToList());
+    }
 
     public Task<MatchDto?> GetMatchAsync(RegionalRoute route, string matchId, CancellationToken ct = default)
     {

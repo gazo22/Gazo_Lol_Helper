@@ -38,6 +38,7 @@ internal sealed class MatchConfiguration : IEntityTypeConfiguration<Match>
         builder.Property(m => m.MatchId).HasMaxLength(32).IsUnicode(false);
         builder.Property(m => m.GameVersion).HasMaxLength(32).IsUnicode(false);
         builder.HasIndex(m => new { m.PatchMajor, m.PatchMinor, m.QueueId });
+        builder.Property(m => m.SourceTier).HasConversion<string>().HasMaxLength(16);
         builder.HasMany(m => m.Participants).WithOne().HasForeignKey(p => p.MatchId).OnDelete(DeleteBehavior.Cascade);
         builder.HasMany(m => m.Bans).WithOne().HasForeignKey(b => b.MatchId).OnDelete(DeleteBehavior.Cascade);
     }

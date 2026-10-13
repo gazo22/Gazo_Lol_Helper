@@ -23,6 +23,17 @@ public sealed class RiftLensApiClient(HttpClient http)
     public Task<ApiResult<StaticManifestDto>> GetStaticManifestAsync(CancellationToken ct = default) =>
         GetAsync<StaticManifestDto>("api/static/manifest", ct);
 
+    public Task<ApiResult<PatchListDto>> GetStatPatchesAsync(CancellationToken ct = default) =>
+        GetAsync<PatchListDto>("api/stats/patches", ct);
+
+    public Task<ApiResult<TierListDto>> GetTierListAsync(string? patch, string? role, string elo, CancellationToken ct = default) =>
+        GetAsync<TierListDto>($"api/tierlist?elo={Esc(elo)}{Opt("patch", patch)}{Opt("role", role)}", ct);
+
+    public Task<ApiResult<ChampionDetailDto>> GetChampionAsync(int championId, string? patch, string? role, string elo, CancellationToken ct = default) =>
+        GetAsync<ChampionDetailDto>(FormattableString.Invariant($"api/champions/{championId}?elo={Esc(elo)}") + Opt("patch", patch) + Opt("role", role), ct);
+
+    private static string Opt(string name, string? value) => string.IsNullOrEmpty(value) ? string.Empty : $"&{name}={Esc(value)}";
+
     private async Task<ApiResult<T>> GetAsync<T>(string relative, CancellationToken ct)
     {
         try

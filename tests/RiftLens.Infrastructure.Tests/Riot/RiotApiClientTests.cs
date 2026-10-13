@@ -72,6 +72,20 @@ public class RiotApiClientTests
     }
 
     [Fact]
+    public async Task Ladder_apex_et_filtre_temporel()
+    {
+        var (client, stub) = Create(r => StubHttpHandler.Json(Fixture.Read(r.RequestUri!.AbsolutePath.Contains("leagues", StringComparison.Ordinal) ? "riot/challenger-league.json" : "riot/match-ids.json")));
+
+        var league = await client.GetApexLeagueAsync(Platform.Euw1, RankTier.Challenger);
+        await client.GetMatchIdsAsync(RegionalRoute.Europe, "abc", new MatchIdQuery(Queue: 420, StartTime: DateTimeOffset.FromUnixTimeSeconds(1760000000)));
+
+        Assert.Equal(3, league!.Entries.Count);
+        Assert.Equal("/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5", stub.Requests[0].RequestUri!.AbsolutePath);
+        Assert.EndsWith("&queue=420&startTime=1760000000", stub.Requests[1].RequestUri!.Query, StringComparison.Ordinal);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => client.GetApexLeagueAsync(Platform.Euw1, RankTier.Diamond));
+    }
+
+    [Fact]
     public async Task Un_404_renvoie_null()
     {
         var (client, _) = Create(_ => new HttpResponseMessage(HttpStatusCode.NotFound));

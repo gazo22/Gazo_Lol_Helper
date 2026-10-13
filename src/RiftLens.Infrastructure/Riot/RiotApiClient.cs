@@ -21,6 +21,18 @@ internal sealed class RiotApiClient(HttpClient http) : IRiotApiClient
     public async Task<IReadOnlyList<LeagueEntryDto>> GetLeagueEntriesByPuuidAsync(Platform platform, string puuid, CancellationToken ct = default) =>
         await GetAsync(OnPlatform(platform, $"/lol/league/v4/entries/by-puuid/{Esc(puuid)}"), "league-v4.entries-by-puuid", Json.IReadOnlyListLeagueEntryDto, null, ct) ?? [];
 
+    public Task<LeagueListDto?> GetApexLeagueAsync(Platform platform, RankTier tier, CancellationToken ct = default)
+    {
+        var segment = tier switch
+        {
+            RankTier.Challenger => "challengerleagues",
+            RankTier.Grandmaster => "grandmasterleagues",
+            RankTier.Master => "masterleagues",
+            _ => throw new ArgumentOutOfRangeException(nameof(tier), tier, "Seuls Master, Grandmaster et Challenger ont un ladder."),
+        };
+        return GetAsync(OnPlatform(platform, $"/lol/league/v4/{segment}/by-queue/RANKED_SOLO_5x5"), $"league-v4.{segment}", Json.LeagueListDto, null, ct);
+    }
+
     public async Task<IReadOnlyList<ChampionMasteryDto>> GetTopMasteriesAsync(Platform platform, string puuid, int count, CancellationToken ct = default) =>
         await GetAsync(
             OnPlatform(platform, $"/lol/champion-mastery/v4/champion-masteries/by-puuid/{Esc(puuid)}/top?count={count.ToString(CultureInfo.InvariantCulture)}"),
@@ -32,6 +44,11 @@ internal sealed class RiotApiClient(HttpClient http) : IRiotApiClient
         if (query.Queue is { } queue)
         {
             path += FormattableString.Invariant($"&queue={queue}");
+        }
+
+        if (query.StartTime is { } startTime)
+        {
+            path += FormattableString.Invariant($"&startTime={startTime.ToUnixTimeSeconds()}");
         }
 
         return await GetAsync(Regional(route, path), "match-v5.ids-by-puuid", Json.IReadOnlyListString, query.Priority, ct) ?? [];

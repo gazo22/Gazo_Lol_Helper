@@ -1,4 +1,7 @@
 @page "/champions"
+@using RiftLens.Contracts
+@inject RiftLensApiClient Api
+@inject GameAssets Game
 
 <PageTitle>Champions · RiftLens</PageTitle>
 
@@ -6,10 +9,63 @@
     <div class="rl-page__header">
         <div>
             <h1 class="rl-page__title">Champions</h1>
-            <div class="rl-page__subtitle">Builds, runes et matchups par champion.</div>
+            <div class="rl-page__subtitle">@Game.Champions.Count champions · tier du meilleur rôle en Master+</div>
         </div>
+        <label class="rl-search-field rl-search-field--lg">
+            <Icon Name="search" Class="rl-ico-16" />
+            <input placeholder="Rechercher un champion" value="@_search" @oninput="e => _search = e.Value?.ToString() ?? string.Empty" />
+        </label>
     </div>
-    <Card NoPadding="true">
-        <EmptyState Title="Bientôt disponible" IconName="champion" Description="Les pages champion arrivent avec l'agrégation (phase 3)." />
-    </Card>
+
+    @if (!Game.IsLoaded)
+    {
+        <div class="rl-champ-grid">
+            @for (var i = 0; i < 24; i++) { <Skeleton Height="112px" /> }
+        </div>
+    }
+    else
+    {
+        var list = Filtered.ToList();
+        @if (list.Count == 0)
+        {
+            <Card NoPadding="true"><EmptyState Title="Aucun champion" IconName="search" Description="Aucun nom ne correspond à votre recherche." /></Card>
+        }
+        <div class="rl-champ-grid">
+            @foreach (var c in list)
+            {
+                var best = _best.GetValueOrDefault(c.Id);
+                <a class="rl-champ-tile" href="@Routes.Champion(c.Key)">
+                    <ChampionIcon Src="@Game.ChampionIcon(c.Id)" Name="@c.Name" Size="64" />
+                    <span class="rl-champ-tile__name">@c.Name</span>
+                    @if (best is not null)
+                    {
+                        <span class="rl-champ-tile__meta">
+                            <TierBadge Tier="@best.Tier" />
+                            <RoleIcon Role="@best.Role" />
+                            <span style="color:@WinrateColor.For(best.Winrate)">@Fmt.Percent(best.Winrate)</span>
+                        </span>
+                    }
+                </a>
+            }
+        </div>
+    }
 </div>
+
+@code {
+    private string _search = string.Empty;
+    private Dictionary<int, TierListRowDto> _best = [];
+
+    private IEnumerable<(int Id, string Key, string Name)> Filtered =>
+        _search.Length == 0
+            ? Game.Champions
+            : Game.Champions.Where(c => ChampionPaletteSource.Normalize(c.Name).Contains(ChampionPaletteSource.Normalize(_search), StringComparison.Ordinal));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Game.EnsureLoadedAsync();
+        if (await Api.GetTierListAsync(null, null, EloFilters.MasterPlus) is { IsSuccess: true } list)
+        {
+            _best = list.Value!.Rows.GroupBy(r => r.ChampionId).ToDictionary(g => g.Key, g => g.MaxBy(r => r.Score)!);
+        }
+    }
+}

@@ -21,6 +21,16 @@
                 officially involved in producing or managing Riot Games properties.
             </p>
         </Card>
+        <Card Title="Calcul du tier" Class="rl-anchor">
+            <div id="tier-score" style="color:var(--rl-text-2);display:grid;gap:var(--rl-space-2)">
+                <p style="margin:0"><b style="color:var(--rl-text-1)">score = borne basse de Wilson (95 %) du winrate + 0,02 × log2(1 + pickrate / 1 %)</b></p>
+                <p style="margin:0">La borne de Wilson pénalise les petits échantillons : 9 victoires sur 12 (75 %) donnent une borne de 46,8 %,
+                    alors que 530 sur 1 000 (53 %) donnent 49,9 %. Le bonus de popularité départage les champions de winrate proche.</p>
+                <p style="margin:0">Les tiers sont attribués <b>par rôle</b> par percentile : S+ 5 %, S 15 %, A 30 %, B 30 %, C le reste.
+                    Sous 150 parties, un champion est marqué « échantillon faible » et plafonné à B.</p>
+                <p style="margin:0">Données : parties classées solo EUW trouvées via les ladders Master, Grandmaster et Challenger.</p>
+            </div>
+        </Card>
         <Card Title="Respect des règles Riot">
             <ul style="margin:0;padding-left:var(--rl-space-5);color:var(--rl-text-2);display:grid;gap:var(--rl-space-2)">
                 <li>Aucune automatisation d'action en jeu.</li>

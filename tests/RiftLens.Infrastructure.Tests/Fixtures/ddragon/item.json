@@ -3,10 +3,117 @@
  "version": "15.20.1",
  "data": {
   "3157": {
-   "name": "Sablier de Zhonya"
+   "name": "Sablier de Zhonya",
+   "gold": {
+    "total": 3250
+   },
+   "tags": [
+    "Armor",
+    "SpellDamage"
+   ],
+   "maps": {
+    "11": true,
+    "12": true
+   }
+  },
+  "3071": {
+   "name": "Couperet noir",
+   "gold": {
+    "total": 3000
+   },
+   "tags": [
+    "Damage"
+   ],
+   "maps": {
+    "11": true
+   }
+  },
+  "4645": {
+   "name": "Flamme d'ombre",
+   "gold": {
+    "total": 3200
+   },
+   "tags": [
+    "SpellDamage"
+   ],
+   "maps": {
+    "11": true
+   }
+  },
+  "3089": {
+   "name": "Coiffe de Rabadon",
+   "gold": {
+    "total": 3500
+   },
+   "tags": [
+    "SpellDamage"
+   ],
+   "maps": {
+    "11": true
+   }
   },
   "3020": {
-   "name": "Chaussures du sorcier"
+   "name": "Chaussures du sorcier",
+   "gold": {
+    "total": 1100
+   },
+   "tags": [
+    "Boots"
+   ],
+   "maps": {
+    "11": true
+   }
+  },
+  "1058": {
+   "name": "Baguette trop grande",
+   "gold": {
+    "total": 1200
+   },
+   "into": [
+    "3089",
+    "4645"
+   ],
+   "tags": [
+    "SpellDamage"
+   ],
+   "maps": {
+    "11": true
+   }
+  },
+  "3340": {
+   "name": "Totem invisible",
+   "gold": {
+    "total": 0
+   },
+   "tags": [
+    "Trinket"
+   ],
+   "maps": {
+    "11": true
+   }
+  },
+  "3364": {
+   "name": "Lentille d'oracle",
+   "gold": {
+    "total": 0
+   },
+   "tags": [
+    "Trinket"
+   ],
+   "maps": {
+    "11": true
+   }
+  },
+  "4403": {
+   "name": "Arena Only",
+   "gold": {
+    "total": 4000
+   },
+   "tags": [],
+   "maps": {
+    "11": false,
+    "30": true
+   }
   }
  }
 }

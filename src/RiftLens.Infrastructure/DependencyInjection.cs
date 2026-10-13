@@ -2,12 +2,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using RiftLens.Infrastructure.Collection;
 using RiftLens.Infrastructure.Matches;
 using RiftLens.Infrastructure.Persistence;
 using RiftLens.Infrastructure.Players;
 using RiftLens.Infrastructure.Riot;
 using RiftLens.Infrastructure.Riot.RateLimit;
 using RiftLens.Infrastructure.StaticData;
+using RiftLens.Infrastructure.Stats;
 
 namespace RiftLens.Infrastructure;
 
@@ -27,6 +29,11 @@ public static class DependencyInjection
 
         services.AddScoped<IMatchService, MatchService>();
         services.AddScoped<IPlayerService, PlayerService>();
+        services.AddOptions<StatsOptions>().Bind(configuration.GetSection(StatsOptions.SectionName));
+        services.AddScoped<IStatsAggregator, StatsAggregator>();
+        services.AddScoped<IStatsQueryService, StatsQueryService>();
+        services.AddOptions<CollectorOptions>().Bind(configuration.GetSection(CollectorOptions.SectionName));
+        services.AddScoped<CollectorPipeline>();
         return services;
     }
 
