@@ -32,6 +32,9 @@ public sealed class RiftLensApiClient(HttpClient http)
     public Task<ApiResult<ChampionDetailDto>> GetChampionAsync(int championId, string? patch, string? role, string elo, CancellationToken ct = default) =>
         GetAsync<ChampionDetailDto>(FormattableString.Invariant($"api/champions/{championId}?elo={Esc(elo)}") + Opt("patch", patch) + Opt("role", role), ct);
 
+    public Task<ApiResult<MatchupListDto>> GetMatchupsAsync(int championId, string? role, string elo, CancellationToken ct = default) =>
+        GetAsync<MatchupListDto>(FormattableString.Invariant($"api/champions/{championId}/matchups?elo={Esc(elo)}") + Opt("role", role), ct);
+
     private static string Opt(string name, string? value) => string.IsNullOrEmpty(value) ? string.Empty : $"&{name}={Esc(value)}";
 
     private async Task<ApiResult<T>> GetAsync<T>(string relative, CancellationToken ct)

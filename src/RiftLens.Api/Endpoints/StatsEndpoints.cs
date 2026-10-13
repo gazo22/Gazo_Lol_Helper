@@ -20,6 +20,9 @@ public static class StatsEndpoints
         app.MapGet("/api/champions/{championId:int}", async Task<Results<Ok<ChampionDetailDto>, NotFound>> (int championId, string? patch, string? role, string? elo, IStatsQueryService stats, CancellationToken ct) =>
                 await stats.GetChampionAsync(championId, patch, role, elo, ct) is { } detail ? TypedResults.Ok(detail) : TypedResults.NotFound())
             .WithName("GetChampionStats");
+        app.MapGet("/api/champions/{championId:int}/matchups", async Task<Results<Ok<MatchupListDto>, NotFound>> (int championId, string? patch, string? role, string? elo, IStatsQueryService stats, CancellationToken ct) =>
+                await stats.GetMatchupsAsync(championId, patch, role, elo, ct) is { } list ? TypedResults.Ok(list) : TypedResults.NotFound())
+            .WithName("GetChampionMatchups");
         return app;
     }
 }

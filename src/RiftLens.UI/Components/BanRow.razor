@@ -1,0 +1,13 @@
+@inject GameAssets Game
+<div class="rl-ban-row" title="Bannissements">
+    @for (var i = 0; i < Math.Max(5, Bans.Count); i++)
+    {
+        var id = Bans.ElementAtOrDefault(i);
+        @if (id > 0) { <ChampionIcon Src="@Game.ChampionIcon(id)" Name="@Game.ChampionName(id)" Size="22" /> }
+        else { <span class="rl-ban-row__empty"></span> }
+    }
+</div>
+
+@code {
+    [Parameter] public IReadOnlyList<int> Bans { get; set; } = [];
+}

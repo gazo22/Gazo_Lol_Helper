@@ -1,0 +1,52 @@
+{
+ "accountId": 2412345678,
+ "itemSets": [
+  {
+   "associatedChampions": [
+    103
+   ],
+   "associatedMaps": [
+    11
+   ],
+   "blocks": [
+    {
+     "hideIfSummonerSpell": "",
+     "items": [
+      {
+       "count": 1,
+       "id": "1056"
+      }
+     ],
+     "showIfSummonerSpell": "",
+     "type": "Départ"
+    }
+   ],
+   "map": "any",
+   "mode": "any",
+   "preferredItemSlots": [],
+   "sortrank": 0,
+   "startedFrom": "blank",
+   "title": "Mon set Ahri",
+   "type": "custom",
+   "uid": "5f1c2a9e-0000-4c1b-9d1e-3a2b1c0d9e8f"
+  },
+  {
+   "associatedChampions": [
+    103
+   ],
+   "associatedMaps": [
+    11
+   ],
+   "blocks": [],
+   "map": "SR",
+   "mode": "CLASSIC",
+   "preferredItemSlots": [],
+   "sortrank": 0,
+   "startedFrom": "blank",
+   "title": "RiftLens · ancien",
+   "type": "custom",
+   "uid": "riftlens-103"
+  }
+ ],
+ "timestamp": 1760000000000
+}

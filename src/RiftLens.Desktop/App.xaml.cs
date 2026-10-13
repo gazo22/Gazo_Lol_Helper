@@ -3,6 +3,7 @@ using System.Windows;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RiftLens.LocalClient;
 using RiftLens.UI.Services;
 using Serilog;
 
@@ -34,6 +35,7 @@ public partial class App : Application
         builder.Services.AddBlazorWebViewDeveloperTools();
 #endif
         builder.Services.AddRiftLensUi(backend);
+        builder.Services.AddRiftLensLocalClient(builder.Configuration);
         builder.Services.AddSingleton<MainWindow>();
 
         _host = builder.Build();

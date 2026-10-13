@@ -66,6 +66,29 @@ Le calcul du tier est documenté dans [`docs/tier-score.md`](docs/tier-score.md)
 
 Réglages : sections `Collector` et `Stats` de `src/RiftLens.Collector/appsettings.json`.
 
+## Assistant de draft (client LoL local)
+
+`RiftLens.LocalClient` tourne dans le Desktop, sur la machine du joueur :
+
+- **Détection** : lecture du `lockfile` à côté de `LeagueClientUx.exe` en cours d'exécution, sinon dans
+  `LocalClient:InstallPaths` (par défaut `C:\Riot Games\League of Legends`). Nouvel essai toutes les 3 s.
+- **HTTPS local** : auth Basic `riot:<password>` ; le certificat auto-signé n'est accepté **que** pour `127.0.0.1`.
+- **Événements** : WebSocket WAMP, abonnement à `OnJsonApiEvent_lol-champ-select_v1_session` (pas de polling).
+- **Import** (sur clic uniquement) : page de runes via `/lol-perks/v1/pages` (remplace l'ancienne page « RiftLens… »,
+  ne supprime jamais une page du joueur) et item set via `/lol-item-sets/v1/item-sets/{summonerId}/sets`
+  (les sets du joueur sont conservés).
+- **Règles Riot** : le modèle de champ select ne contient aucun nom, Riot ID ni PUUID ; aucune action de jeu
+  n'est automatisée (pas d'auto-pick, d'auto-ban ni d'acceptation automatique).
+
+### Vérification manuelle (Windows)
+
+1. Lancer le client LoL puis RiftLens → page Draft : « Client connecté ».
+2. Lancer une partie personnalisée ou une file normale → le panneau apparaît à l'entrée en sélection.
+3. Survoler un champion → stats, matchups et recommandations se mettent à jour.
+4. « Importer la page de runes » → une page « RiftLens <champion> » est créée et sélectionnée.
+5. « Importer l'item set » → visible dans la boutique en jeu, onglet des objets recommandés.
+6. Fermer le client → retour à « Client non détecté », puis reconnexion automatique au redémarrage.
+
 ## Démarrage
 
 Prérequis : .NET 10 SDK, Docker, Windows 10/11 + WebView2 pour le Desktop.

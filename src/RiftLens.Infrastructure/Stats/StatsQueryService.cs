@@ -14,6 +14,8 @@ public interface IStatsQueryService
     Task<TierListDto?> GetTierListAsync(string? patch, string? role, string? elo, CancellationToken ct = default);
 
     Task<ChampionDetailDto?> GetChampionAsync(int championId, string? patch, string? role, string? elo, CancellationToken ct = default);
+
+    Task<MatchupListDto?> GetMatchupsAsync(int championId, string? patch, string? role, string? elo, CancellationToken ct = default);
 }
 
 internal sealed class StatsQueryService(RiftLensDbContext db, IOptions<StatsOptions> options) : IStatsQueryService
@@ -112,6 +114,40 @@ internal sealed class StatsQueryService(RiftLensDbContext db, IOptions<StatsOpti
             championId, key, eloKey, selected.ToString(), total, summary,
             roleStats.OrderByDescending(r => r.Games).Select(r => new RoleShareDto(r.Role.ToString(), r.Games, r.Wins)).ToList(),
             builds, runes, best, worst, Options.MinBuildGames, Options.MinMatchupGames);
+    }
+
+    public async Task<MatchupListDto?> GetMatchupsAsync(int championId, string? patch, string? role, string? elo, CancellationToken ct = default)
+    {
+        var context = await ResolveAsync(patch, elo, ct);
+        if (context is null)
+        {
+            return null;
+        }
+
+        var (key, buckets, eloKey, _) = context.Value;
+        var query = db.MatchupStats.AsNoTracking().Where(s => s.Patch == key && buckets.Contains(s.Bucket) && s.ChampionId == championId);
+        var selected = ParseRole(role);
+        if (selected is null)
+        {
+            // Rôle non précisé : celui où le champion est le plus joué.
+            var main = await db.ChampionStats.AsNoTracking()
+                .Where(s => s.Patch == key && buckets.Contains(s.Bucket) && s.ChampionId == championId)
+                .GroupBy(s => s.Role).Select(g => new { Role = g.Key, Games = g.Sum(x => x.Games) })
+                .OrderByDescending(g => g.Games).FirstOrDefaultAsync(ct);
+            if (main is null)
+            {
+                return null;
+            }
+
+            selected = main.Role;
+        }
+
+        var r = selected.Value;
+        var matchups = await query.Where(s => s.Role == r)
+            .GroupBy(s => s.OpponentId)
+            .Select(g => new MatchupDto(g.Key, g.Sum(x => x.Games), g.Sum(x => x.Wins)))
+            .ToListAsync(ct);
+        return new MatchupListDto(championId, r.ToString(), key, eloKey, Options.MinMatchupGames, matchups.OrderByDescending(m => m.Games).ToList());
     }
 
     private async Task<List<TierListRowDto>> ComputeRowsAsync(string key, List<RankTier> buckets, int total, CancellationToken ct)

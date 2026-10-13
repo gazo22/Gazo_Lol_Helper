@@ -138,6 +138,20 @@ public sealed class StatsTests : IDisposable
     }
 
     [Fact]
+    public async Task Liste_complete_des_matchups_dans_le_role_principal()
+    {
+        await SeedAsync(3, RankTier.Master);
+        await Aggregator().AggregateAsync(Patch);
+
+        var list = await Query(minMatchup: 20).GetMatchupsAsync(103, null, null, null);
+
+        Assert.Equal("Middle", list!.Role);
+        var sylas = Assert.Single(list.Matchups);
+        Assert.Equal((517, 3, 3), (sylas.OpponentId, sylas.Games, sylas.Wins));
+        Assert.Equal(20, list.MinGames); // les faibles échantillons sont renvoyés, l'UI les signale
+    }
+
+    [Fact]
     public async Task Sans_donnees_la_tier_list_est_null() => Assert.Null(await Query().GetTierListAsync(null, null, null));
 
     public void Dispose() => _db.Dispose();

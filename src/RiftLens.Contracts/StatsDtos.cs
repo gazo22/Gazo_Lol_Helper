@@ -55,3 +55,6 @@ public sealed record MatchupDto(int OpponentId, int Games, int Wins)
 {
     public double Winrate => Games == 0 ? 0 : (double)Wins / Games;
 }
+
+/// <summary>Tous les matchups observés d'un champion dans un rôle (y compris faibles échantillons, à signaler).</summary>
+public sealed record MatchupListDto(int ChampionId, string Role, string Patch, string Elo, int MinGames, IReadOnlyList<MatchupDto> Matchups);

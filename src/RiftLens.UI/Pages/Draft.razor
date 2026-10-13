@@ -1,15 +1,289 @@
 @page "/draft"
+@using RiftLens.Contracts
+@using RiftLens.LocalClient
+@using RiftLens.LocalClient.ChampSelect
+@using RiftLens.LocalClient.Import
+@implements IDisposable
+@inject ILeagueClientService Client
+@inject RiftLensApiClient Api
+@inject GameAssets Game
 
-<PageTitle>Assistant de draft · RiftLens</PageTitle>
+<PageTitle>Draft · RiftLens</PageTitle>
 
 <div class="rl-page">
     <div class="rl-page__header">
         <div>
             <h1 class="rl-page__title">Assistant de draft</h1>
-            <div class="rl-page__subtitle">Picks, bans, winrates de matchup et import de runes.</div>
+            <div class="rl-page__subtitle">Picks, bans, matchups et import en un clic des runes et de l'item set.</div>
         </div>
+        <span class="rl-status @StatusCss"><span class="rl-status__dot"></span>@StatusLabel</span>
     </div>
-    <Card NoPadding="true">
-        <EmptyState Title="Bientôt disponible" IconName="draft" Description="La détection du client LoL et le champ select arrivent en phase 4." />
-    </Card>
+
+    @if (Client.Status != LeagueClientStatus.Connected)
+    {
+        <Card NoPadding="true">
+            <EmptyState Title="Client League of Legends non détecté" IconName="draft"
+                        Description="Lancez le client LoL sur ce PC : RiftLens le détecte automatiquement (lockfile du dossier d'installation)." />
+        </Card>
+    }
+    else if (Client.ChampSelect is not { } cs)
+    {
+        <Card NoPadding="true">
+            <EmptyState Title="En attente du champ select" IconName="draft"
+                        Description="Le panneau s'affichera dès l'entrée en sélection des champions." />
+        </Card>
+    }
+    else
+    {
+        <div class="rl-draft">
+            <section class="rl-draft__team rl-draft__team--blue" aria-label="Votre équipe">
+                <header><span>Votre équipe</span><BanRow Bans="cs.MyBans" /></header>
+                @foreach (var slot in cs.MyTeam)
+                {
+                    var row = RowFor(slot.DisplayedChampionId, slot.Role);
+                    <div class="rl-draft-slot @(slot.IsLocal ? "is-local" : null) @(slot.ChampionId == 0 && slot.PickIntentId > 0 ? "is-intent" : null)">
+                        <ChampionIcon Src="@Game.ChampionIcon(slot.DisplayedChampionId)" Name="@Game.ChampionName(slot.DisplayedChampionId)" Size="48" />
+                        <div class="rl-draft-slot__info">
+                            @* Jamais de nom de joueur : uniquement poste et champion (règle Riot sur les noms masqués). *@
+                            <span class="rl-draft-slot__label">
+                                @if (slot.Role is not null) { <RoleIcon Role="@slot.Role" /> }
+                                @(slot.IsLocal ? "Vous" : slot.Role is null ? "Allié" : Fmt.RoleLabel(slot.Role))
+                            </span>
+                            <b>@(slot.DisplayedChampionId > 0 ? Game.ChampionName(slot.DisplayedChampionId) : "Sélection…")</b>
+                        </div>
+                        @if (row is not null)
+                        {
+                            <div class="rl-draft-slot__stats"><TierBadge Tier="@row.Tier" /><small style="color:@WinrateColor.For(row.Winrate)">@Fmt.Percent(row.Winrate)</small></div>
+                        }
+                    </div>
+                }
+            </section>
+
+            <section class="rl-draft__center">
+                @if (cs.LocalChampionId == 0)
+                {
+                    <Card Title="@(LocalRole is null ? "Meilleurs choix" : $"Meilleurs choix · {Fmt.RoleLabel(LocalRole)}")">
+                        @if (Suggestions.Count == 0) { <div class="rl-chart-empty">Pas encore de statistiques agrégées.</div> }
+                        <ul class="rl-matchups">
+                            @foreach (var s in Suggestions)
+                            {
+                                <li>
+                                    <span class="rl-matchups__champ">
+                                        <ChampionIcon Src="@Game.ChampionIcon(s.ChampionId)" Name="@Game.ChampionName(s.ChampionId)" Size="28" />
+                                        <span>@Game.ChampionName(s.ChampionId)</span> <TierBadge Tier="@s.Tier" />
+                                    </span>
+                                    <WinrateBar Winrate="s.Winrate" Games="s.Games" />
+                                    <small class="rl-muted rl-num-cell">@Fmt.Num(s.Games)</small>
+                                </li>
+                            }
+                        </ul>
+                    </Card>
+                }
+                else
+                {
+                    var champ = cs.LocalChampionId;
+                    var summary = _detail?.Summary;
+                    <div class="rl-draft-pick">
+                        <div class="rl-draft-pick__bg" style="background-image:url('@Game.ChampionSplash(champ)')"></div>
+                        <div class="rl-draft-pick__content">
+                            <ChampionIcon Src="@Game.ChampionIcon(champ)" Name="@Game.ChampionName(champ)" Size="64" />
+                            <div>
+                                <h2>@Game.ChampionName(champ)</h2>
+                                <span class="rl-muted">@(_detail is null ? "…" : $"{Fmt.RoleLabel(_detail.Role)} · patch {_detail.Patch} · {Fmt.Num(summary?.Games ?? 0)} parties")</span>
+                            </div>
+                            @if (summary is not null)
+                            {
+                                <div class="rl-draft-pick__tier"><TierBadge Tier="@summary.Tier" /><WinrateBar Winrate="summary.Winrate" Games="summary.Games" ShowBar="false" /></div>
+                            }
+                        </div>
+                    </div>
+
+                    <Card Title="Contre l'équipe adverse">
+                        @{ var enemies = cs.TheirTeam.Where(t => t.ChampionId > 0).ToList(); }
+                        @if (enemies.Count == 0) { <div class="rl-chart-empty">Aucun champion adverse verrouillé pour l'instant.</div> }
+                        <ul class="rl-matchups">
+                            @foreach (var enemy in enemies)
+                            {
+                                var mu = _matchups?.Matchups.FirstOrDefault(m => m.OpponentId == enemy.ChampionId);
+                                <li>
+                                    <span class="rl-matchups__champ">
+                                        <ChampionIcon Src="@Game.ChampionIcon(enemy.ChampionId)" Name="@Game.ChampionName(enemy.ChampionId)" Size="28" />
+                                        <span>@Game.ChampionName(enemy.ChampionId)</span>
+                                    </span>
+                                    @if (mu is null) { <span class="rl-muted">pas de données de lane</span><span></span> }
+                                    else
+                                    {
+                                        <WinrateBar Winrate="mu.Winrate" Games="mu.Games" />
+                                        <small class="rl-num-cell @(mu.Games < (_matchups?.MinGames ?? 0) ? "rl-warn-text" : "rl-muted")" title="@(mu.Games < (_matchups?.MinGames ?? 0) ? "Échantillon faible" : null)">@Fmt.Num(mu.Games)</small>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </Card>
+
+                    <div class="rl-grid rl-grid--2">
+                        <Card Title="Runes recommandées">
+                            @if (_detail?.RunePages.FirstOrDefault() is { } runePage)
+                            {
+                                <div class="rl-draft-reco">
+                                    <RuneTree Expanded="true" Perks="runePage.Perks" SubStyle="runePage.SubStyle" Keystone="@runePage.Perks.ElementAtOrDefault(0)" />
+                                    <WinrateBar Winrate="runePage.Winrate" Games="runePage.Games" ShowBar="false" />
+                                </div>
+                                <button class="rl-btn rl-btn--primary rl-btn--block" disabled="@_busy" @onclick="() => ImportRunesAsync(runePage)">Importer la page de runes</button>
+                            }
+                            else { <div class="rl-chart-empty">Pas assez de parties pour recommander une page.</div> }
+                        </Card>
+                        <Card Title="Build recommandé">
+                            @if (_detail?.Builds.FirstOrDefault() is { } build)
+                            {
+                                <div class="rl-draft-reco">
+                                    <div class="rl-build-list__items">
+                                        @foreach (var item in build.Items) { <ItemSlot Src="@Game.ItemIcon(item)" Name="@Game.ItemName(item)" Size="36" /> }
+                                    </div>
+                                    <WinrateBar Winrate="build.Winrate" Games="build.Games" ShowBar="false" />
+                                </div>
+                                <button class="rl-btn rl-btn--primary rl-btn--block" disabled="@_busy" @onclick="() => ImportItemSetAsync(build)">Importer l'item set</button>
+                            }
+                            else { <div class="rl-chart-empty">Pas assez de parties pour recommander un build.</div> }
+                        </Card>
+                    </div>
+                    @if (_importMessage is not null)
+                    {
+                        <div class="rl-toast @(_importOk ? "rl-toast--ok" : "rl-toast--error")" role="status">@_importMessage</div>
+                    }
+                }
+            </section>
+
+            <section class="rl-draft__team rl-draft__team--red" aria-label="Équipe adverse">
+                <header><span>Adversaires</span><BanRow Bans="cs.TheirBans" /></header>
+                @foreach (var slot in cs.TheirTeam)
+                {
+                    var best = BestRowFor(slot.ChampionId);
+                    <div class="rl-draft-slot">
+                        <ChampionIcon Src="@Game.ChampionIcon(slot.ChampionId)" Name="@Game.ChampionName(slot.ChampionId)" Size="48" />
+                        <div class="rl-draft-slot__info">
+                            <span class="rl-draft-slot__label">Adversaire</span>
+                            <b>@(slot.ChampionId > 0 ? Game.ChampionName(slot.ChampionId) : "—")</b>
+                        </div>
+                        @if (best is not null)
+                        {
+                            <div class="rl-draft-slot__stats"><TierBadge Tier="@best.Tier" /><small style="color:@WinrateColor.For(best.Winrate)">@Fmt.Percent(best.Winrate)</small></div>
+                        }
+                    </div>
+                }
+            </section>
+        </div>
+        <p class="rl-footnote">RiftLens n'effectue aucune action à votre place : les imports ne se font que sur clic. Les noms des joueurs ne sont jamais affichés pendant la sélection.</p>
+    }
 </div>
+
+@code {
+    private TierListDto? _tierList;
+    private ChampionDetailDto? _detail;
+    private MatchupListDto? _matchups;
+    private (int Champion, string? Role) _loadedFor = (-1, null);
+    private bool _busy;
+    private string? _importMessage;
+    private bool _importOk;
+
+    private string? LocalRole => Client.ChampSelect?.Local?.Role;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Client.Changed += OnClientChanged;
+        await Game.EnsureLoadedAsync();
+        if (await Api.GetTierListAsync(null, null, EloFilters.MasterPlus) is { IsSuccess: true } list)
+        {
+            _tierList = list.Value;
+        }
+
+        await RefreshPickAsync();
+    }
+
+    private void OnClientChanged() => _ = InvokeAsync(async () =>
+    {
+        StateHasChanged();
+        await RefreshPickAsync();
+    });
+
+    private async Task RefreshPickAsync()
+    {
+        var champion = Client.ChampSelect?.LocalChampionId ?? 0;
+        var role = LocalRole;
+        if ((champion, role) == _loadedFor)
+        {
+            return;
+        }
+
+        _loadedFor = (champion, role);
+        (_detail, _matchups, _importMessage) = (null, null, null);
+        if (champion > 0)
+        {
+            var detail = Api.GetChampionAsync(champion, null, role, EloFilters.MasterPlus);
+            var matchups = Api.GetMatchupsAsync(champion, role, EloFilters.MasterPlus);
+            _detail = (await detail).Value;
+            _matchups = (await matchups).Value;
+        }
+
+        StateHasChanged();
+    }
+
+    private IReadOnlyList<TierListRowDto> Suggestions =>
+        (_tierList?.Rows ?? []).Where(r => LocalRole is null || r.Role == LocalRole).Where(r => !r.SampleTooSmall)
+            .Where(r => Client.ChampSelect is not { } cs || !cs.MyBans.Concat(cs.TheirBans).Contains(r.ChampionId))
+            .OrderByDescending(r => r.Score).Take(6).ToList();
+
+    private TierListRowDto? RowFor(int championId, string? role) =>
+        championId <= 0 ? null
+        : role is null ? BestRowFor(championId)
+        : _tierList?.Rows.FirstOrDefault(r => r.ChampionId == championId && r.Role == role) ?? BestRowFor(championId);
+
+    private TierListRowDto? BestRowFor(int championId) =>
+        championId <= 0 ? null : _tierList?.Rows.Where(r => r.ChampionId == championId).MaxBy(r => r.Games);
+
+    private async Task ImportRunesAsync(RunePageDto page)
+    {
+        var champ = Client.ChampSelect?.LocalChampionId ?? 0;
+        await RunImportAsync(() => Client.ImportRunePageAsync(new RunePageRequest($"RiftLens {Game.ChampionName(champ)}", page.PrimaryStyle, page.SubStyle, page.Perks)));
+    }
+
+    private async Task ImportItemSetAsync(BuildDto build)
+    {
+        var champ = Client.ChampSelect?.LocalChampionId ?? 0;
+        var title = $"RiftLens · {Game.ChampionName(champ)} ({Fmt.Percent(build.Winrate, 0)} WR)";
+        await RunImportAsync(() => Client.ImportItemSetAsync(new ItemSetRequest(title, champ, [new ItemSetBlock($"Core ({Fmt.Num(build.Games)} parties)", build.Items)])));
+    }
+
+    private async Task RunImportAsync(Func<Task<ImportResult>> import)
+    {
+        _busy = true;
+        var result = await import();
+        (_busy, _importOk, _importMessage) = (false, result.Success, result.Message);
+    }
+
+    private string StatusCss => Client.Status switch
+    {
+        LeagueClientStatus.Connected => "rl-status--ok",
+        LeagueClientStatus.NotRunning => "rl-status--down",
+        _ => string.Empty,
+    };
+
+    private string StatusLabel => (Client.Status, Client.ChampSelect) switch
+    {
+        (LeagueClientStatus.Connected, { } cs) => $"Champ select · {PhaseLabel(cs.Phase)} · {Math.Max(0, (int)cs.TimeLeft.TotalSeconds)} s",
+        (LeagueClientStatus.Connected, null) => "Client connecté",
+        (LeagueClientStatus.Connecting, _) => "Connexion au client…",
+        _ => "Client non détecté",
+    };
+
+    private static string PhaseLabel(string phase) => phase switch
+    {
+        "PLANNING" => "déclaration",
+        "BAN_PICK" => "bans & picks",
+        "FINALIZATION" => "finalisation",
+        "GAME_STARTING" => "lancement",
+        _ => phase.ToLowerInvariant(),
+    };
+
+    public void Dispose() => Client.Changed -= OnClientChanged;
+}
