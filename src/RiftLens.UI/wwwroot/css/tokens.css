@@ -1,0 +1,111 @@
+/* RiftLens — design tokens. Toute valeur visuelle doit passer par ces variables. */
+@font-face {
+  font-family: "Inter";
+  src: url("../fonts/inter-latin-wght-normal.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("../fonts/space-grotesk-latin-wght-normal.woff2") format("woff2-variations");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces : quasi-noir bleuté, du plus profond au plus élevé */
+  --rl-bg-0: #05080f;
+  --rl-bg-1: #090e18;
+  --rl-bg-2: #0e1522;
+  --rl-bg-3: #141d2e;
+  --rl-bg-4: #1b263a;
+  --rl-border: rgba(148, 178, 230, 0.08);
+  --rl-border-strong: rgba(148, 178, 230, 0.16);
+
+  /* Texte */
+  --rl-text-1: #e8eef9;
+  --rl-text-2: #a3b1c9;
+  --rl-text-3: #6b7a94;
+  --rl-text-inverse: #031018;
+
+  /* Accent : cyan électrique */
+  --rl-accent: #22d3ee;
+  --rl-accent-strong: #67e8f9;
+  --rl-accent-soft: rgba(34, 211, 238, 0.12);
+  --rl-accent-glow: rgba(34, 211, 238, 0.35);
+  --rl-gradient-accent: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
+  --rl-gradient-surface: linear-gradient(180deg, rgba(20, 29, 46, 0.9) 0%, rgba(14, 21, 34, 0.9) 100%);
+
+  /* Sémantique */
+  --rl-win: #34d399;
+  --rl-win-soft: rgba(52, 211, 153, 0.12);
+  --rl-loss: #f87171;
+  --rl-loss-soft: rgba(248, 113, 113, 0.12);
+  --rl-warn: #fbbf24;
+  --rl-wr-low: #f87171;     /* < 47 % */
+  --rl-wr-mid: #a3b1c9;     /* ~ 50 % */
+  --rl-wr-high: #34d399;    /* > 53 % */
+
+  /* Tiers */
+  --rl-tier-splus: #ff4d8d;
+  --rl-tier-s: #ff9f43;
+  --rl-tier-a: #22d3ee;
+  --rl-tier-b: #818cf8;
+  --rl-tier-c: #6b7a94;
+
+  /* Équipes */
+  --rl-team-blue: #3b82f6;
+  --rl-team-red: #ef4444;
+
+  /* Typographie */
+  --rl-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --rl-font-display: "Space Grotesk", var(--rl-font-sans);
+  --rl-text-xs: 0.75rem;
+  --rl-text-sm: 0.8125rem;
+  --rl-text-md: 0.9375rem;
+  --rl-text-lg: 1.125rem;
+  --rl-text-xl: 1.5rem;
+  --rl-text-2xl: 2rem;
+  --rl-text-3xl: 2.75rem;
+
+  /* Espacements (échelle 4 px) */
+  --rl-space-1: 4px;
+  --rl-space-2: 8px;
+  --rl-space-3: 12px;
+  --rl-space-4: 16px;
+  --rl-space-5: 20px;
+  --rl-space-6: 24px;
+  --rl-space-8: 32px;
+  --rl-space-10: 40px;
+  --rl-space-12: 48px;
+
+  /* Rayons */
+  --rl-radius-sm: 6px;
+  --rl-radius-md: 10px;
+  --rl-radius-lg: 14px;
+  --rl-radius-xl: 20px;
+  --rl-radius-full: 999px;
+
+  /* Ombres */
+  --rl-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --rl-shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+  --rl-shadow-lg: 0 24px 64px -16px rgba(0, 0, 0, 0.75);
+  --rl-shadow-glow: 0 0 0 1px var(--rl-accent-soft), 0 0 24px -4px var(--rl-accent-glow);
+
+  /* Mouvement */
+  --rl-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --rl-dur-fast: 120ms;
+  --rl-dur: 200ms;
+  --rl-dur-slow: 360ms;
+
+  /* Layout */
+  --rl-sidebar-w: 232px;
+  --rl-topbar-h: 60px;
+  --rl-content-max: 1360px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --rl-dur-fast: 0ms; --rl-dur: 0ms; --rl-dur-slow: 0ms; }
+}

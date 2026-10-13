@@ -1,0 +1,80 @@
+@inherits LayoutComponentBase
+@implements IAsyncDisposable
+@inject CommandPaletteState Palette
+@inject IJSRuntime JS
+
+<div class="rl-shell">
+    <aside class="rl-sidebar">
+        <a class="rl-brand" href="">
+            <svg class="rl-brand__mark" viewBox="0 0 32 32" aria-hidden="true">
+                <defs>
+                    <linearGradient id="rl-mark" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#67e8f9" /><stop offset="1" stop-color="#3b82f6" />
+                    </linearGradient>
+                </defs>
+                <path d="M16 2 29 9.5v13L16 30 3 22.5v-13z" fill="none" stroke="url(#rl-mark)" stroke-width="2" />
+                <circle cx="16" cy="16" r="5.5" fill="none" stroke="url(#rl-mark)" stroke-width="2" />
+                <circle cx="16" cy="16" r="2" fill="#22d3ee" />
+            </svg>
+            <span class="rl-brand__name">Rift<span>Lens</span></span>
+        </a>
+        <NavMenu />
+        <div class="rl-sidebar__footer">
+            RiftLens n'est pas approuvé par Riot Games et ne reflète pas les opinions de Riot Games ou de toute personne
+            officiellement impliquée dans la production ou la gestion de League of Legends.
+        </div>
+    </aside>
+
+    <header class="rl-topbar">
+        <button class="rl-search-trigger" type="button" @onclick="Palette.Open">
+            <Icon Name="search" />
+            <span>Rechercher un joueur ou un champion…</span>
+            <span class="rl-kbd">Ctrl</span><span class="rl-kbd">K</span>
+        </button>
+        <div class="rl-topbar__right">
+            <ConnectionStatus />
+        </div>
+    </header>
+
+    <main class="rl-main">
+        @Body
+    </main>
+</div>
+
+<CommandPalette />
+
+@code {
+    private IJSObjectReference? _module;
+    private IJSObjectReference? _hotkeys;
+    private DotNetObjectReference<MainLayout>? _self;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _self = DotNetObjectReference.Create(this);
+        _module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/RiftLens.UI/js/riftlens.js");
+        _hotkeys = await _module.InvokeAsync<IJSObjectReference>("registerHotkeys", _self);
+    }
+
+    [JSInvokable]
+    public void TogglePalette() => Palette.Toggle();
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (_hotkeys is not null) { await _hotkeys.InvokeVoidAsync("dispose"); await _hotkeys.DisposeAsync(); }
+            if (_module is not null) { await _module.DisposeAsync(); }
+        }
+        catch (JSDisconnectedException)
+        {
+            // WebView déjà fermée.
+        }
+
+        _self?.Dispose();
+    }
+}

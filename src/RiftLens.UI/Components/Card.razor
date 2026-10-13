@@ -1,0 +1,21 @@
+<section class="rl-card @(Interactive ? "rl-card--interactive" : null) @Class" @onclick="OnClick">
+    @if (Title is not null || Actions is not null)
+    {
+        <header class="rl-card__header">
+            @if (Title is not null) { <h2 class="rl-card__title">@Title</h2> }
+            @Actions
+        </header>
+    }
+    @if (NoPadding) { @ChildContent }
+    else { <div class="rl-card__body">@ChildContent</div> }
+</section>
+
+@code {
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public RenderFragment? Actions { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool Interactive { get; set; }
+    [Parameter] public bool NoPadding { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+}

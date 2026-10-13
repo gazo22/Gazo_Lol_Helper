@@ -1,0 +1,27 @@
+<div class="rl-card rl-stat">
+    <div class="rl-stat__label">@Label</div>
+    @if (Loading)
+    {
+        <span class="rl-skeleton" style="height:30px;width:60%;margin:6px 0"></span>
+        <span class="rl-skeleton" style="height:12px;width:40%"></span>
+    }
+    else
+    {
+        <div class="rl-stat__value">@Value</div>
+        @if (Hint is not null)
+        {
+            <div class="rl-stat__hint @TrendClass">@Hint</div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public string? Hint { get; set; }
+    /// <summary>Signe de la tendance : positif = vert, négatif = rouge.</summary>
+    [Parameter] public int Trend { get; set; }
+    [Parameter] public bool Loading { get; set; }
+
+    private string? TrendClass => Trend switch { > 0 => "rl-stat__hint--up", < 0 => "rl-stat__hint--down", _ => null };
+}

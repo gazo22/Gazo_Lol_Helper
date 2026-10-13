@@ -1,0 +1,18 @@
+<span class="rl-champ @(Round ? "rl-champ--round" : null)" style="width:@(Size)px;height:@(Size)px" title="@Name">
+    @if (!string.IsNullOrEmpty(Src))
+    {
+        <img src="@Src" alt="@Name" loading="lazy" />
+    }
+    @if (Level is not null)
+    {
+        <span class="rl-champ__level">@Level</span>
+    }
+</span>
+
+@code {
+    [Parameter] public string? Src { get; set; }
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public int Size { get; set; } = 40;
+    [Parameter] public bool Round { get; set; }
+    [Parameter] public int? Level { get; set; }
+}

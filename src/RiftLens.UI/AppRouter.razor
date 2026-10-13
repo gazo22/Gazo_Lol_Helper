@@ -1,0 +1,13 @@
+<Router AppAssembly="typeof(AppRouter).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="typeof(MainLayout)">
+            <div class="rl-page">
+                <EmptyState Title="Page introuvable" IconName="search" Description="Cette page n'existe pas (encore). Utilisez Ctrl+K pour naviguer." />
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>

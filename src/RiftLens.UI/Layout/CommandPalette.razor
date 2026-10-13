@@ -1,0 +1,164 @@
+@implements IAsyncDisposable
+@inject CommandPaletteState State
+@inject IEnumerable<IPaletteSource> Sources
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+@if (State.IsOpen)
+{
+    <div class="rl-palette-backdrop" @onclick="State.Close">
+        <div class="rl-palette" role="dialog" aria-modal="true" aria-label="Recherche" @onclick:stopPropagation="true">
+            <div class="rl-palette__input-row">
+                <Icon Name="search" />
+                <input @ref="_input" class="rl-palette__input" placeholder="Joueur (Nom#TAG), champion, page…"
+                       value="@_query" @oninput="OnInput" @onkeydown="OnKeyDown" @onkeydown:preventDefault="_preventDefault"
+                       autocomplete="off" spellcheck="false" />
+                <span class="rl-kbd">Échap</span>
+            </div>
+            <ul class="rl-palette__list" role="listbox">
+                @if (_results.Count == 0)
+                {
+                    <li class="rl-palette__group">Aucun résultat</li>
+                }
+                @for (var i = 0; i < _results.Count; i++)
+                {
+                    var entry = _results[i];
+                    var index = i;
+                    if (i == 0 || _results[i - 1].Group != entry.Group)
+                    {
+                        <li class="rl-palette__group">@GroupLabel(entry.Group)</li>
+                    }
+                    <li id="rl-pal-@index" role="option" aria-selected="@(index == _active)"
+                        class="rl-palette__item @(index == _active ? "is-active" : null)"
+                        @onmouseenter="() => _active = index" @onclick="() => Go(entry)">
+                        <Icon Name="@entry.Icon" />
+                        <span>@entry.Label</span>
+                        @if (entry.Hint is not null) { <small>@entry.Hint</small> }
+                    </li>
+                }
+            </ul>
+            <div class="rl-palette__footer">
+                <span><span class="rl-kbd">↑</span> <span class="rl-kbd">↓</span> naviguer</span>
+                <span><span class="rl-kbd">Entrée</span> ouvrir</span>
+                <span style="margin-left:auto">Astuce : tapez <b>Nom#TAG</b> pour un joueur</span>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private ElementReference _input;
+    private string _query = string.Empty;
+    private List<PaletteEntry> _results = [];
+    private int _active;
+    private bool _preventDefault;
+    private bool _focusPending;
+    private CancellationTokenSource? _cts;
+    private IJSObjectReference? _module;
+
+    protected override void OnInitialized() => State.Changed += OnStateChanged;
+
+    private async void OnStateChanged()
+    {
+        try
+        {
+            if (State.IsOpen)
+            {
+                _query = string.Empty;
+                await SearchAsync();
+                _focusPending = true;
+            }
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (ObjectDisposedException)
+        {
+            // Composant détruit pendant l'ouverture : rien à faire.
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusPending && State.IsOpen)
+        {
+            _focusPending = false;
+            await _input.FocusAsync();
+        }
+    }
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        _query = e.Value?.ToString() ?? string.Empty;
+        await SearchAsync();
+    }
+
+    private async Task SearchAsync()
+    {
+        if (_cts is not null) { await _cts.CancelAsync(); _cts.Dispose(); }
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
+        var all = new List<PaletteEntry>();
+        foreach (var source in Sources)
+        {
+            all.AddRange(await source.SearchAsync(_query, token));
+        }
+
+        if (!token.IsCancellationRequested)
+        {
+            _results = all.OrderBy(r => r.Group).ToList();
+            _active = 0;
+        }
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        _preventDefault = e.Key is "ArrowDown" or "ArrowUp" or "Enter";
+        switch (e.Key)
+        {
+            case "ArrowDown" when _results.Count > 0:
+                _active = (_active + 1) % _results.Count;
+                await ScrollToActiveAsync();
+                break;
+            case "ArrowUp" when _results.Count > 0:
+                _active = (_active - 1 + _results.Count) % _results.Count;
+                await ScrollToActiveAsync();
+                break;
+            case "Enter" when _results.Count > 0:
+                Go(_results[_active]);
+                break;
+            case "Escape":
+                State.Close();
+                break;
+        }
+    }
+
+    private async Task ScrollToActiveAsync()
+    {
+        _module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./_content/RiftLens.UI/js/riftlens.js");
+        await _module.InvokeVoidAsync("scrollIntoView", $"#rl-pal-{_active}");
+    }
+
+    private void Go(PaletteEntry entry)
+    {
+        State.Close();
+        Nav.NavigateTo(entry.Href);
+    }
+
+    private static string GroupLabel(PaletteGroup group) => group switch
+    {
+        PaletteGroup.Player => "Joueurs",
+        PaletteGroup.Champion => "Champions",
+        _ => "Navigation",
+    };
+
+    public async ValueTask DisposeAsync()
+    {
+        State.Changed -= OnStateChanged;
+        _cts?.Dispose();
+        if (_module is not null)
+        {
+            try { await _module.DisposeAsync(); }
+            catch (JSDisconnectedException) { /* WebView fermée */ }
+        }
+    }
+}

@@ -1,0 +1,37 @@
+@implements IDisposable
+@inject IBackendStatus Backend
+
+<span class="rl-status @Css" title="Backend RiftLens">
+    <span class="rl-status__dot"></span>@Label
+</span>
+
+@code {
+    protected override void OnInitialized() => Backend.Changed += OnChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Backend.RefreshAsync();
+        }
+    }
+
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private string? Css => Backend.State switch
+    {
+        BackendState.Online => "rl-status--ok",
+        BackendState.Offline or BackendState.Unauthorized => "rl-status--down",
+        _ => null,
+    };
+
+    private string Label => Backend.State switch
+    {
+        BackendState.Online => "Backend connecté",
+        BackendState.Unauthorized => "Clé d'accès refusée",
+        BackendState.Offline => "Backend injoignable",
+        _ => "Connexion…",
+    };
+
+    public void Dispose() => Backend.Changed -= OnChanged;
+}

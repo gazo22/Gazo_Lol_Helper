@@ -1,0 +1,7 @@
+<span class="rl-skeleton" style="width:@Width;height:@Height;@(Round ? "border-radius:50%" : null)"></span>
+
+@code {
+    [Parameter] public string Width { get; set; } = "100%";
+    [Parameter] public string Height { get; set; } = "14px";
+    [Parameter] public bool Round { get; set; }
+}

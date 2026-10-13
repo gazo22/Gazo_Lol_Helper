@@ -1,0 +1,12 @@
+<span class="rl-item @(string.IsNullOrEmpty(Src) ? "rl-item--empty" : null)" style="width:@(Size)px;height:@(Size)px" title="@Name">
+    @if (!string.IsNullOrEmpty(Src))
+    {
+        <img src="@Src" alt="@Name" loading="lazy" />
+    }
+</span>
+
+@code {
+    [Parameter] public string? Src { get; set; }
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public int Size { get; set; } = 28;
+}

@@ -1,0 +1,30 @@
+<div class="rl-rank" style="--rl-rank-color:@Color">
+    <div class="rl-rank__emblem">@Abbrev</div>
+    <div>
+        <div class="rl-rank__tier">@Display</div>
+        @if (Tier != "UNRANKED")
+        {
+            <div class="rl-rank__lp">@LeaguePoints.ToString("N0", CultureInfo.CurrentCulture) LP</div>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>Tier Riot en majuscules (IRON … CHALLENGER) ou UNRANKED.</summary>
+    [Parameter] public string Tier { get; set; } = "UNRANKED";
+    /// <summary>Division I-IV (ignorée pour Master+).</summary>
+    [Parameter] public string? Division { get; set; }
+    [Parameter] public int LeaguePoints { get; set; }
+
+    private static readonly Dictionary<string, string> Colors = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["IRON"] = "#8b8b8b", ["BRONZE"] = "#b07a52", ["SILVER"] = "#a9b8c8", ["GOLD"] = "#e2b65c",
+        ["PLATINUM"] = "#4fd1c5", ["EMERALD"] = "#34d399", ["DIAMOND"] = "#7aa2ff", ["MASTER"] = "#c084fc",
+        ["GRANDMASTER"] = "#f87171", ["CHALLENGER"] = "#fcd34d", ["UNRANKED"] = "#6b7a94",
+    };
+
+    private string Color => Colors.GetValueOrDefault(Tier, "#6b7a94");
+    private bool IsApex => Tier is "MASTER" or "GRANDMASTER" or "CHALLENGER";
+    private string Abbrev => Tier switch { "GRANDMASTER" => "GM", "UNRANKED" => "—", _ => Tier[..1] + (IsApex ? string.Empty : Division switch { "I" => "1", "II" => "2", "III" => "3", "IV" => "4", _ => string.Empty }) };
+    private string Display => Tier == "UNRANKED" ? "Non classé" : CultureInfo.InvariantCulture.TextInfo.ToTitleCase(Tier.ToLowerInvariant()) + (IsApex || Division is null ? string.Empty : $" {Division}");
+}

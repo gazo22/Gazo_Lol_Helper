@@ -1,0 +1,63 @@
+@page "/"
+@inject CommandPaletteState Palette
+
+<PageTitle>RiftLens</PageTitle>
+
+<div class="rl-page">
+    <section class="rl-hero">
+        <div class="rl-hero__bg" style="background-image:radial-gradient(circle at 70% 30%, #1e3a5f, transparent 55%), radial-gradient(circle at 30% 70%, #0e4f5c, transparent 50%)"></div>
+        <div class="rl-hero__content" style="flex-direction:column;align-items:flex-start;justify-content:flex-end">
+            <span class="rl-pill rl-pill--accent"><Icon Name="bolt" Class="rl-ico-12" /> Compagnon League of Legends</span>
+            <h1 style="font-size:var(--rl-text-3xl);line-height:1.1">Lisez la Faille <span style="background:var(--rl-gradient-accent);-webkit-background-clip:text;background-clip:text;color:transparent">plus clairement</span>.</h1>
+            <p style="color:var(--rl-text-2);max-width:560px;margin:0">Profils, historique, tier list high-elo, assistant de draft et overlay en jeu — dans une seule app.</p>
+            <button class="rl-btn rl-btn--primary" @onclick="Palette.Open"><Icon Name="search" Class="rl-ico-16" /> Rechercher un joueur <span class="rl-kbd" style="background:rgba(3,16,24,.2);border-color:rgba(3,16,24,.25);color:inherit">Ctrl K</span></button>
+        </div>
+    </section>
+
+    <div class="rl-page__header">
+        <div>
+            <h2 style="font-size:var(--rl-text-xl)">Aperçu du design system</h2>
+            <div class="rl-page__subtitle">Données d'exemple — remplacées par les vraies statistiques en phase 2.</div>
+        </div>
+    </div>
+
+    <div class="rl-grid rl-grid--4" style="margin-bottom:var(--rl-space-4)">
+        <StatTile Label="Winrate (20 parties)" Value="58,0 %" Hint="+4,2 pts vs saison" Trend="1" />
+        <StatTile Label="KDA moyen" Value="3,41" Hint="7,1 / 4,3 / 7,6" />
+        <StatTile Label="CS / min" Value="7,8" Hint="−0,4 vs moyenne" Trend="-1" />
+        <StatTile Label="Chargement" Loading="true" />
+    </div>
+
+    <div class="rl-grid rl-grid--2">
+        <Card Title="Rangs & tiers">
+            <div style="display:flex;gap:var(--rl-space-8);flex-wrap:wrap;align-items:center">
+                <RankBadge Tier="EMERALD" Division="II" LeaguePoints="64" />
+                <RankBadge Tier="MASTER" LeaguePoints="212" />
+                <RankBadge Tier="UNRANKED" />
+                <div style="display:flex;gap:var(--rl-space-2)">
+                    <TierBadge Tier="S+" /><TierBadge Tier="S" /><TierBadge Tier="A" /><TierBadge Tier="B" /><TierBadge Tier="C" />
+                </div>
+            </div>
+        </Card>
+        <Card Title="Winrates">
+            <div style="display:grid;gap:var(--rl-space-3)">
+                <WinrateBar Winrate="0.556" Games="1240" />
+                <WinrateBar Winrate="0.512" Games="830" />
+                <WinrateBar Winrate="0.497" Games="402" />
+                <WinrateBar Winrate="0.462" Games="96" />
+            </div>
+        </Card>
+        <Card Title="Résultats & items">
+            <div style="display:flex;gap:var(--rl-space-2);margin-bottom:var(--rl-space-4)">
+                <span class="rl-pill rl-pill--win">Victoire</span><span class="rl-pill rl-pill--loss">Défaite</span><span class="rl-pill">Remake</span>
+            </div>
+            <div style="display:flex;gap:4px">
+                @for (var i = 0; i < 6; i++) { <ItemSlot /> }
+                <ChampionIcon Size="28" Round="true" Level="18" Name="Exemple" />
+            </div>
+        </Card>
+        <Card Title="État vide" NoPadding="true">
+            <EmptyState Title="Aucun match pour l'instant" IconName="list" Description="Les parties classées récentes apparaîtront ici après la première synchronisation." />
+        </Card>
+    </div>
+</div>

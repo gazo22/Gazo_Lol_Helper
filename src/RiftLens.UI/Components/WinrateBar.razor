@@ -1,0 +1,21 @@
+<div class="rl-wr" style="--rl-wr-color:@Color" title="@Title">
+    <span class="rl-wr__value">@((Winrate * 100).ToString("0.0", CultureInfo.CurrentCulture))%</span>
+    @if (ShowBar)
+    {
+        <span class="rl-wr__track"><span class="rl-wr__fill" style="width:@Width"></span></span>
+    }
+</div>
+
+@code {
+    /// <summary>Winrate entre 0 et 1.</summary>
+    [Parameter] public double Winrate { get; set; }
+    [Parameter] public int? Games { get; set; }
+    [Parameter] public bool ShowBar { get; set; } = true;
+
+    private string Title => Games is { } g ? $"{g.ToString("N0", CultureInfo.CurrentCulture)} parties" : string.Empty;
+
+    /// <summary>La barre est centrée sur 50 % : 40 % → vide, 60 % → pleine.</summary>
+    private string Width => (Math.Clamp((Winrate - 0.40) / 0.20, 0.02, 1) * 100).ToString("0.#", CultureInfo.InvariantCulture) + "%";
+
+    private string Color => WinrateColor.For(Winrate);
+}

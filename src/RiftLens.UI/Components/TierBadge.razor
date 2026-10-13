@@ -1,0 +1,9 @@
+<span class="rl-tier rl-tier--@CssKey" title="Tier @Label">@Label</span>
+
+@code {
+    /// <summary>"S+", "S", "A", "B" ou "C".</summary>
+    [Parameter, EditorRequired] public string Tier { get; set; } = "C";
+
+    private string Label => Tier.ToUpperInvariant();
+    private string CssKey => Label == "S+" ? "splus" : Label.ToLowerInvariant();
+}

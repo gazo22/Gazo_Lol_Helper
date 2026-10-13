@@ -1,0 +1,13 @@
+<div class="rl-empty">
+    <div class="rl-empty__icon"><Icon Name="@IconName" /></div>
+    <div class="rl-empty__title">@Title</div>
+    @if (Description is not null) { <p style="margin:0;max-width:420px">@Description</p> }
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string IconName { get; set; } = "info";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

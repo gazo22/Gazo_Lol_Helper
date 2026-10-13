@@ -1,0 +1,20 @@
+@page "/profile/{GameName}/{TagLine}"
+
+<PageTitle>@GameName#@TagLine · RiftLens</PageTitle>
+
+<div class="rl-page">
+    <div class="rl-page__header">
+        <div>
+            <h1 class="rl-page__title">@GameName<span style="color:var(--rl-text-3)">#@TagLine</span></h1>
+            <div class="rl-page__subtitle">Profil joueur</div>
+        </div>
+    </div>
+    <Card NoPadding="true">
+        <EmptyState Title="Profils en cours de construction" IconName="user" Description="La recherche via Account-V1, le rang et l'historique arrivent en phase 2." />
+    </Card>
+</div>
+
+@code {
+    [Parameter] public string GameName { get; set; } = string.Empty;
+    [Parameter] public string TagLine { get; set; } = string.Empty;
+}
