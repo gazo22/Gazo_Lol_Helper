@@ -1,0 +1,18 @@
+<div class="rl-hero" aria-busy="true">
+    <div class="rl-hero__content">
+        <Skeleton Width="96px" Height="96px" />
+        <div style="display:grid;gap:10px;flex:1">
+            <Skeleton Width="260px" Height="32px" />
+            <Skeleton Width="180px" Height="14px" />
+        </div>
+    </div>
+</div>
+<div class="rl-grid rl-grid--4" style="margin-bottom:var(--rl-space-6)">
+    @for (var i = 0; i < 4; i++) { <StatTile Label="…" Loading="true" /> }
+</div>
+<div class="rl-profile-layout">
+    <div class="rl-profile-side"><div class="rl-card" style="padding:20px"><Skeleton Height="220px" /></div></div>
+    <div class="rl-match-list">
+        @for (var i = 0; i < 5; i++) { <div class="rl-match rl-match--skeleton"><Skeleton Height="72px" /></div> }
+    </div>
+</div>

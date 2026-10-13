@@ -1,0 +1,32 @@
+@* Icônes de rôle dessinées pour RiftLens (silhouette de la carte, voie mise en valeur). *@
+<svg viewBox="0 0 24 24" class="rl-role @Class" aria-label="@Fmt.RoleLabel(Role)" role="img">
+    <rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-opacity=".28" stroke-width="1.5" />
+    @switch (Role)
+    {
+        case "Top":
+            <path d="M3.75 14V6.5a2.75 2.75 0 0 1 2.75-2.75H14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+            <rect x="8" y="8" width="4" height="4" rx="1" fill="currentColor" fill-opacity=".45" />
+            break;
+        case "Jungle":
+            <path d="M8 5c1.5 3 1.5 6 0 9m8-9c-1.5 3-1.5 6 0 9M12 6v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            break;
+        case "Middle":
+            <path d="M6 18 18 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+            break;
+        case "Bottom":
+            <path d="M10 20.25h7.5a2.75 2.75 0 0 0 2.75-2.75V10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+            <rect x="12" y="12" width="4" height="4" rx="1" fill="currentColor" fill-opacity=".45" />
+            break;
+        case "Support":
+            <path d="M12 7c2.5-2 5-1.5 6 0-1 1.5-3 2.5-6 2.5S7 8.5 6 7c1-1.5 3.5-2 6 0zm0 3.5V19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            break;
+        default:
+            <circle cx="12" cy="12" r="2" fill="currentColor" />
+            break;
+    }
+</svg>
+
+@code {
+    [Parameter, EditorRequired] public string Role { get; set; } = string.Empty;
+    [Parameter] public string? Class { get; set; }
+}

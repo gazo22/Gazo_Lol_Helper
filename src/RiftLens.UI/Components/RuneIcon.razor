@@ -1,0 +1,10 @@
+@inject GameAssets Game
+<span class="rl-rune @(Muted ? "rl-rune--muted" : null)" style="width:@(Size)px;height:@(Size)px" title="@Game.RuneName(Id)">
+    @if (Game.RuneIcon(Id) is { } src) { <img src="@src" alt="@Game.RuneName(Id)" loading="lazy" /> }
+</span>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public int Size { get; set; } = 24;
+    [Parameter] public bool Muted { get; set; }
+}

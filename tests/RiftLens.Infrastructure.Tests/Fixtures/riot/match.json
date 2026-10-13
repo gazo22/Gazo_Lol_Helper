@@ -1,0 +1,1078 @@
+{
+ "metadata": {
+  "dataVersion": "2",
+  "matchId": "EUW1_7512345678",
+  "participants": [
+   "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000001",
+   "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000002",
+   "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000003",
+   "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000004",
+   "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000005",
+   "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000006",
+   "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000007",
+   "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000008",
+   "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000009",
+   "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000010"
+  ]
+ },
+ "info": {
+  "endOfGameResult": "GameComplete",
+  "gameCreation": 1760290000000,
+  "gameDuration": 1874,
+  "gameEndTimestamp": 1760291900000,
+  "gameId": 7512345678,
+  "gameMode": "CLASSIC",
+  "gameName": "teambuilder-match-7512345678",
+  "gameStartTimestamp": 1760290020000,
+  "gameType": "MATCHED_GAME",
+  "gameVersion": "15.20.715.1234",
+  "mapId": 11,
+  "participants": [
+   {
+    "allInPings": 0,
+    "assists": 8,
+    "champLevel": 15,
+    "championId": 266,
+    "championName": "Aatrox",
+    "deaths": 7,
+    "gameEndedInEarlySurrender": false,
+    "gameEndedInSurrender": false,
+    "goldEarned": 14332,
+    "individualPosition": "TOP",
+    "item0": 3071,
+    "item1": 3020,
+    "item2": 4645,
+    "item3": 3089,
+    "item4": 0,
+    "item5": 1058,
+    "item6": 3340,
+    "kills": 1,
+    "lane": "MIDDLE",
+    "neutralMinionsKilled": 2,
+    "participantId": 1,
+    "perks": {
+     "statPerks": {
+      "defense": 5011,
+      "flex": 5008,
+      "offense": 5005
+     },
+     "styles": [
+      {
+       "description": "primaryStyle",
+       "selections": [
+        {
+         "perk": 8112,
+         "var1": 1210,
+         "var2": 11,
+         "var3": 0
+        },
+        {
+         "perk": 8139,
+         "var1": 980,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8138,
+         "var1": 18,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8135,
+         "var1": 1500,
+         "var2": 5,
+         "var3": 0
+        }
+       ],
+       "style": 8100
+      },
+      {
+       "description": "subStyle",
+       "selections": [
+        {
+         "perk": 8226,
+         "var1": 250,
+         "var2": 1340,
+         "var3": 0
+        },
+        {
+         "perk": 8210,
+         "var1": 12,
+         "var2": 0,
+         "var3": 0
+        }
+       ],
+       "style": 8200
+      }
+     ]
+    },
+    "puuid": "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000001",
+    "riotIdGameName": "Joueur1",
+    "riotIdTagline": "EUW",
+    "role": "SOLO",
+    "summoner1Id": 4,
+    "summoner2Id": 14,
+    "summonerId": "s1",
+    "summonerLevel": 201,
+    "teamId": 100,
+    "teamPosition": "TOP",
+    "totalDamageDealtToChampions": 35911,
+    "totalDamageTaken": 29559,
+    "totalMinionsKilled": 172,
+    "visionScore": 61,
+    "wardsPlaced": 8,
+    "win": true
+   },
+   {
+    "allInPings": 0,
+    "assists": 11,
+    "champLevel": 15,
+    "championId": 64,
+    "championName": "LeeSin",
+    "deaths": 1,
+    "gameEndedInEarlySurrender": false,
+    "gameEndedInSurrender": false,
+    "goldEarned": 9704,
+    "individualPosition": "JUNGLE",
+    "item0": 3071,
+    "item1": 3020,
+    "item2": 4645,
+    "item3": 3089,
+    "item4": 0,
+    "item5": 1058,
+    "item6": 3364,
+    "kills": 7,
+    "lane": "MIDDLE",
+    "neutralMinionsKilled": 176,
+    "participantId": 2,
+    "perks": {
+     "statPerks": {
+      "defense": 5011,
+      "flex": 5008,
+      "offense": 5005
+     },
+     "styles": [
+      {
+       "description": "primaryStyle",
+       "selections": [
+        {
+         "perk": 8112,
+         "var1": 1210,
+         "var2": 11,
+         "var3": 0
+        },
+        {
+         "perk": 8139,
+         "var1": 980,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8138,
+         "var1": 18,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8135,
+         "var1": 1500,
+         "var2": 5,
+         "var3": 0
+        }
+       ],
+       "style": 8100
+      },
+      {
+       "description": "subStyle",
+       "selections": [
+        {
+         "perk": 8226,
+         "var1": 250,
+         "var2": 1340,
+         "var3": 0
+        },
+        {
+         "perk": 8210,
+         "var1": 12,
+         "var2": 0,
+         "var3": 0
+        }
+       ],
+       "style": 8200
+      }
+     ]
+    },
+    "puuid": "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000002",
+    "riotIdGameName": "Joueur2",
+    "riotIdTagline": "EUW",
+    "role": "SOLO",
+    "summoner1Id": 4,
+    "summoner2Id": 11,
+    "summonerId": "s2",
+    "summonerLevel": 202,
+    "teamId": 100,
+    "teamPosition": "JUNGLE",
+    "totalDamageDealtToChampions": 11289,
+    "totalDamageTaken": 19886,
+    "totalMinionsKilled": 22,
+    "visionScore": 69,
+    "wardsPlaced": 8,
+    "win": true
+   },
+   {
+    "allInPings": 0,
+    "assists": 12,
+    "champLevel": 14,
+    "championId": 103,
+    "championName": "Ahri",
+    "deaths": 4,
+    "gameEndedInEarlySurrender": false,
+    "gameEndedInSurrender": false,
+    "goldEarned": 14166,
+    "individualPosition": "MIDDLE",
+    "item0": 3157,
+    "item1": 3020,
+    "item2": 4645,
+    "item3": 3089,
+    "item4": 0,
+    "item5": 1058,
+    "item6": 3340,
+    "kills": 11,
+    "lane": "MIDDLE",
+    "neutralMinionsKilled": 18,
+    "participantId": 3,
+    "perks": {
+     "statPerks": {
+      "defense": 5011,
+      "flex": 5008,
+      "offense": 5005
+     },
+     "styles": [
+      {
+       "description": "primaryStyle",
+       "selections": [
+        {
+         "perk": 8112,
+         "var1": 1210,
+         "var2": 11,
+         "var3": 0
+        },
+        {
+         "perk": 8139,
+         "var1": 980,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8138,
+         "var1": 18,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8135,
+         "var1": 1500,
+         "var2": 5,
+         "var3": 0
+        }
+       ],
+       "style": 8100
+      },
+      {
+       "description": "subStyle",
+       "selections": [
+        {
+         "perk": 8226,
+         "var1": 250,
+         "var2": 1340,
+         "var3": 0
+        },
+        {
+         "perk": 8210,
+         "var1": 12,
+         "var2": 0,
+         "var3": 0
+        }
+       ],
+       "style": 8200
+      }
+     ]
+    },
+    "puuid": "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000003",
+    "riotIdGameName": "Gazo",
+    "riotIdTagline": "EUW",
+    "role": "SOLO",
+    "summoner1Id": 4,
+    "summoner2Id": 14,
+    "summonerId": "s3",
+    "summonerLevel": 203,
+    "teamId": 100,
+    "teamPosition": "MIDDLE",
+    "totalDamageDealtToChampions": 11027,
+    "totalDamageTaken": 30910,
+    "totalMinionsKilled": 234,
+    "visionScore": 65,
+    "wardsPlaced": 8,
+    "win": true
+   },
+   {
+    "allInPings": 0,
+    "assists": 6,
+    "champLevel": 14,
+    "championId": 222,
+    "championName": "Jinx",
+    "deaths": 3,
+    "gameEndedInEarlySurrender": false,
+    "gameEndedInSurrender": false,
+    "goldEarned": 11372,
+    "individualPosition": "BOTTOM",
+    "item0": 3071,
+    "item1": 3020,
+    "item2": 4645,
+    "item3": 3089,
+    "item4": 0,
+    "item5": 1058,
+    "item6": 3340,
+    "kills": 7,
+    "lane": "MIDDLE",
+    "neutralMinionsKilled": 4,
+    "participantId": 4,
+    "perks": {
+     "statPerks": {
+      "defense": 5011,
+      "flex": 5008,
+      "offense": 5005
+     },
+     "styles": [
+      {
+       "description": "primaryStyle",
+       "selections": [
+        {
+         "perk": 8112,
+         "var1": 1210,
+         "var2": 11,
+         "var3": 0
+        },
+        {
+         "perk": 8139,
+         "var1": 980,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8138,
+         "var1": 18,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8135,
+         "var1": 1500,
+         "var2": 5,
+         "var3": 0
+        }
+       ],
+       "style": 8100
+      },
+      {
+       "description": "subStyle",
+       "selections": [
+        {
+         "perk": 8226,
+         "var1": 250,
+         "var2": 1340,
+         "var3": 0
+        },
+        {
+         "perk": 8210,
+         "var1": 12,
+         "var2": 0,
+         "var3": 0
+        }
+       ],
+       "style": 8200
+      }
+     ]
+    },
+    "puuid": "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000004",
+    "riotIdGameName": "Joueur4",
+    "riotIdTagline": "EUW",
+    "role": "SOLO",
+    "summoner1Id": 4,
+    "summoner2Id": 14,
+    "summonerId": "s4",
+    "summonerLevel": 204,
+    "teamId": 100,
+    "teamPosition": "BOTTOM",
+    "totalDamageDealtToChampions": 26717,
+    "totalDamageTaken": 15859,
+    "totalMinionsKilled": 233,
+    "visionScore": 54,
+    "wardsPlaced": 40,
+    "win": true
+   },
+   {
+    "allInPings": 0,
+    "assists": 13,
+    "champLevel": 15,
+    "championId": 412,
+    "championName": "Thresh",
+    "deaths": 2,
+    "gameEndedInEarlySurrender": false,
+    "gameEndedInSurrender": false,
+    "goldEarned": 13764,
+    "individualPosition": "UTILITY",
+    "item0": 3071,
+    "item1": 3020,
+    "item2": 4645,
+    "item3": 3089,
+    "item4": 0,
+    "item5": 1058,
+    "item6": 3340,
+    "kills": 10,
+    "lane": "MIDDLE",
+    "neutralMinionsKilled": 20,
+    "participantId": 5,
+    "perks": {
+     "statPerks": {
+      "defense": 5011,
+      "flex": 5008,
+      "offense": 5005
+     },
+     "styles": [
+      {
+       "description": "primaryStyle",
+       "selections": [
+        {
+         "perk": 8112,
+         "var1": 1210,
+         "var2": 11,
+         "var3": 0
+        },
+        {
+         "perk": 8139,
+         "var1": 980,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8138,
+         "var1": 18,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8135,
+         "var1": 1500,
+         "var2": 5,
+         "var3": 0
+        }
+       ],
+       "style": 8100
+      },
+      {
+       "description": "subStyle",
+       "selections": [
+        {
+         "perk": 8226,
+         "var1": 250,
+         "var2": 1340,
+         "var3": 0
+        },
+        {
+         "perk": 8210,
+         "var1": 12,
+         "var2": 0,
+         "var3": 0
+        }
+       ],
+       "style": 8200
+      }
+     ]
+    },
+    "puuid": "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000005",
+    "riotIdGameName": "Joueur5",
+    "riotIdTagline": "EUW",
+    "role": "SOLO",
+    "summoner1Id": 4,
+    "summoner2Id": 14,
+    "summonerId": "s5",
+    "summonerLevel": 205,
+    "teamId": 100,
+    "teamPosition": "UTILITY",
+    "totalDamageDealtToChampions": 15156,
+    "totalDamageTaken": 24202,
+    "totalMinionsKilled": 23,
+    "visionScore": 23,
+    "wardsPlaced": 8,
+    "win": true
+   },
+   {
+    "allInPings": 0,
+    "assists": 12,
+    "champLevel": 15,
+    "championId": 122,
+    "championName": "Darius",
+    "deaths": 8,
+    "gameEndedInEarlySurrender": false,
+    "gameEndedInSurrender": false,
+    "goldEarned": 14573,
+    "individualPosition": "TOP",
+    "item0": 3071,
+    "item1": 3020,
+    "item2": 4645,
+    "item3": 3089,
+    "item4": 0,
+    "item5": 1058,
+    "item6": 3340,
+    "kills": 9,
+    "lane": "MIDDLE",
+    "neutralMinionsKilled": 13,
+    "participantId": 6,
+    "perks": {
+     "statPerks": {
+      "defense": 5011,
+      "flex": 5008,
+      "offense": 5005
+     },
+     "styles": [
+      {
+       "description": "primaryStyle",
+       "selections": [
+        {
+         "perk": 8112,
+         "var1": 1210,
+         "var2": 11,
+         "var3": 0
+        },
+        {
+         "perk": 8139,
+         "var1": 980,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8138,
+         "var1": 18,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8135,
+         "var1": 1500,
+         "var2": 5,
+         "var3": 0
+        }
+       ],
+       "style": 8100
+      },
+      {
+       "description": "subStyle",
+       "selections": [
+        {
+         "perk": 8226,
+         "var1": 250,
+         "var2": 1340,
+         "var3": 0
+        },
+        {
+         "perk": 8210,
+         "var1": 12,
+         "var2": 0,
+         "var3": 0
+        }
+       ],
+       "style": 8200
+      }
+     ]
+    },
+    "puuid": "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000006",
+    "riotIdGameName": "Joueur6",
+    "riotIdTagline": "EUW",
+    "role": "SOLO",
+    "summoner1Id": 4,
+    "summoner2Id": 14,
+    "summonerId": "s6",
+    "summonerLevel": 206,
+    "teamId": 200,
+    "teamPosition": "TOP",
+    "totalDamageDealtToChampions": 34468,
+    "totalDamageTaken": 22293,
+    "totalMinionsKilled": 219,
+    "visionScore": 73,
+    "wardsPlaced": 28,
+    "win": false
+   },
+   {
+    "allInPings": 0,
+    "assists": 7,
+    "champLevel": 15,
+    "championId": 141,
+    "championName": "Kayn",
+    "deaths": 3,
+    "gameEndedInEarlySurrender": false,
+    "gameEndedInSurrender": false,
+    "goldEarned": 14726,
+    "individualPosition": "JUNGLE",
+    "item0": 3071,
+    "item1": 3020,
+    "item2": 4645,
+    "item3": 3089,
+    "item4": 0,
+    "item5": 1058,
+    "item6": 3364,
+    "kills": 4,
+    "lane": "MIDDLE",
+    "neutralMinionsKilled": 155,
+    "participantId": 7,
+    "perks": {
+     "statPerks": {
+      "defense": 5011,
+      "flex": 5008,
+      "offense": 5005
+     },
+     "styles": [
+      {
+       "description": "primaryStyle",
+       "selections": [
+        {
+         "perk": 8112,
+         "var1": 1210,
+         "var2": 11,
+         "var3": 0
+        },
+        {
+         "perk": 8139,
+         "var1": 980,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8138,
+         "var1": 18,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8135,
+         "var1": 1500,
+         "var2": 5,
+         "var3": 0
+        }
+       ],
+       "style": 8100
+      },
+      {
+       "description": "subStyle",
+       "selections": [
+        {
+         "perk": 8226,
+         "var1": 250,
+         "var2": 1340,
+         "var3": 0
+        },
+        {
+         "perk": 8210,
+         "var1": 12,
+         "var2": 0,
+         "var3": 0
+        }
+       ],
+       "style": 8200
+      }
+     ]
+    },
+    "puuid": "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000007",
+    "riotIdGameName": "Joueur7",
+    "riotIdTagline": "EUW",
+    "role": "SOLO",
+    "summoner1Id": 4,
+    "summoner2Id": 11,
+    "summonerId": "s7",
+    "summonerLevel": 207,
+    "teamId": 200,
+    "teamPosition": "JUNGLE",
+    "totalDamageDealtToChampions": 27822,
+    "totalDamageTaken": 21838,
+    "totalMinionsKilled": 36,
+    "visionScore": 78,
+    "wardsPlaced": 26,
+    "win": false
+   },
+   {
+    "allInPings": 0,
+    "assists": 14,
+    "champLevel": 17,
+    "championId": 517,
+    "championName": "Sylas",
+    "deaths": 5,
+    "gameEndedInEarlySurrender": false,
+    "gameEndedInSurrender": false,
+    "goldEarned": 13988,
+    "individualPosition": "MIDDLE",
+    "item0": 3071,
+    "item1": 3020,
+    "item2": 4645,
+    "item3": 3089,
+    "item4": 0,
+    "item5": 1058,
+    "item6": 3340,
+    "kills": 2,
+    "lane": "MIDDLE",
+    "neutralMinionsKilled": 3,
+    "participantId": 8,
+    "perks": {
+     "statPerks": {
+      "defense": 5011,
+      "flex": 5008,
+      "offense": 5005
+     },
+     "styles": [
+      {
+       "description": "primaryStyle",
+       "selections": [
+        {
+         "perk": 8112,
+         "var1": 1210,
+         "var2": 11,
+         "var3": 0
+        },
+        {
+         "perk": 8139,
+         "var1": 980,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8138,
+         "var1": 18,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8135,
+         "var1": 1500,
+         "var2": 5,
+         "var3": 0
+        }
+       ],
+       "style": 8100
+      },
+      {
+       "description": "subStyle",
+       "selections": [
+        {
+         "perk": 8226,
+         "var1": 250,
+         "var2": 1340,
+         "var3": 0
+        },
+        {
+         "perk": 8210,
+         "var1": 12,
+         "var2": 0,
+         "var3": 0
+        }
+       ],
+       "style": 8200
+      }
+     ]
+    },
+    "puuid": "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000008",
+    "riotIdGameName": "Joueur8",
+    "riotIdTagline": "EUW",
+    "role": "SOLO",
+    "summoner1Id": 4,
+    "summoner2Id": 14,
+    "summonerId": "s8",
+    "summonerLevel": 208,
+    "teamId": 200,
+    "teamPosition": "MIDDLE",
+    "totalDamageDealtToChampions": 25775,
+    "totalDamageTaken": 25701,
+    "totalMinionsKilled": 181,
+    "visionScore": 58,
+    "wardsPlaced": 14,
+    "win": false
+   },
+   {
+    "allInPings": 0,
+    "assists": 10,
+    "champLevel": 17,
+    "championId": 51,
+    "championName": "Caitlyn",
+    "deaths": 1,
+    "gameEndedInEarlySurrender": false,
+    "gameEndedInSurrender": false,
+    "goldEarned": 14474,
+    "individualPosition": "BOTTOM",
+    "item0": 3071,
+    "item1": 3020,
+    "item2": 4645,
+    "item3": 3089,
+    "item4": 0,
+    "item5": 1058,
+    "item6": 3340,
+    "kills": 2,
+    "lane": "MIDDLE",
+    "neutralMinionsKilled": 17,
+    "participantId": 9,
+    "perks": {
+     "statPerks": {
+      "defense": 5011,
+      "flex": 5008,
+      "offense": 5005
+     },
+     "styles": [
+      {
+       "description": "primaryStyle",
+       "selections": [
+        {
+         "perk": 8112,
+         "var1": 1210,
+         "var2": 11,
+         "var3": 0
+        },
+        {
+         "perk": 8139,
+         "var1": 980,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8138,
+         "var1": 18,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8135,
+         "var1": 1500,
+         "var2": 5,
+         "var3": 0
+        }
+       ],
+       "style": 8100
+      },
+      {
+       "description": "subStyle",
+       "selections": [
+        {
+         "perk": 8226,
+         "var1": 250,
+         "var2": 1340,
+         "var3": 0
+        },
+        {
+         "perk": 8210,
+         "var1": 12,
+         "var2": 0,
+         "var3": 0
+        }
+       ],
+       "style": 8200
+      }
+     ]
+    },
+    "puuid": "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000009",
+    "riotIdGameName": "Joueur9",
+    "riotIdTagline": "EUW",
+    "role": "SOLO",
+    "summoner1Id": 4,
+    "summoner2Id": 14,
+    "summonerId": "s9",
+    "summonerLevel": 209,
+    "teamId": 200,
+    "teamPosition": "BOTTOM",
+    "totalDamageDealtToChampions": 27776,
+    "totalDamageTaken": 22280,
+    "totalMinionsKilled": 203,
+    "visionScore": 59,
+    "wardsPlaced": 36,
+    "win": false
+   },
+   {
+    "allInPings": 0,
+    "assists": 12,
+    "champLevel": 17,
+    "championId": 89,
+    "championName": "Leona",
+    "deaths": 2,
+    "gameEndedInEarlySurrender": false,
+    "gameEndedInSurrender": false,
+    "goldEarned": 9766,
+    "individualPosition": "UTILITY",
+    "item0": 3071,
+    "item1": 3020,
+    "item2": 4645,
+    "item3": 3089,
+    "item4": 0,
+    "item5": 1058,
+    "item6": 3340,
+    "kills": 5,
+    "lane": "MIDDLE",
+    "neutralMinionsKilled": 15,
+    "participantId": 10,
+    "perks": {
+     "statPerks": {
+      "defense": 5011,
+      "flex": 5008,
+      "offense": 5005
+     },
+     "styles": [
+      {
+       "description": "primaryStyle",
+       "selections": [
+        {
+         "perk": 8112,
+         "var1": 1210,
+         "var2": 11,
+         "var3": 0
+        },
+        {
+         "perk": 8139,
+         "var1": 980,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8138,
+         "var1": 18,
+         "var2": 0,
+         "var3": 0
+        },
+        {
+         "perk": 8135,
+         "var1": 1500,
+         "var2": 5,
+         "var3": 0
+        }
+       ],
+       "style": 8100
+      },
+      {
+       "description": "subStyle",
+       "selections": [
+        {
+         "perk": 8226,
+         "var1": 250,
+         "var2": 1340,
+         "var3": 0
+        },
+        {
+         "perk": 8210,
+         "var1": 12,
+         "var2": 0,
+         "var3": 0
+        }
+       ],
+       "style": 8200
+      }
+     ]
+    },
+    "puuid": "Xy8kQ2vR9mT4nB7cL1pZ5wE3sD6fG0hJ-aK2uY9iO4tR7eW1qA3zX5cV8bN0mL2kJ4hG6f00000010",
+    "riotIdGameName": "Joueur10",
+    "riotIdTagline": "EUW",
+    "role": "SOLO",
+    "summoner1Id": 4,
+    "summoner2Id": 14,
+    "summonerId": "s10",
+    "summonerLevel": 210,
+    "teamId": 200,
+    "teamPosition": "UTILITY",
+    "totalDamageDealtToChampions": 31840,
+    "totalDamageTaken": 33762,
+    "totalMinionsKilled": 22,
+    "visionScore": 22,
+    "wardsPlaced": 24,
+    "win": false
+   }
+  ],
+  "platformId": "EUW1",
+  "queueId": 420,
+  "teams": [
+   {
+    "bans": [
+     {
+      "championId": 157,
+      "pickTurn": 1
+     },
+     {
+      "championId": -1,
+      "pickTurn": 2
+     },
+     {
+      "championId": 238,
+      "pickTurn": 3
+     },
+     {
+      "championId": 84,
+      "pickTurn": 4
+     },
+     {
+      "championId": 350,
+      "pickTurn": 5
+     }
+    ],
+    "objectives": {
+     "baron": {
+      "first": true,
+      "kills": 1
+     },
+     "dragon": {
+      "first": true,
+      "kills": 3
+     },
+     "tower": {
+      "first": true,
+      "kills": 9
+     }
+    },
+    "teamId": 100,
+    "win": true
+   },
+   {
+    "bans": [
+     {
+      "championId": 555,
+      "pickTurn": 6
+     },
+     {
+      "championId": 875,
+      "pickTurn": 7
+     },
+     {
+      "championId": 24,
+      "pickTurn": 8
+     },
+     {
+      "championId": 12,
+      "pickTurn": 9
+     },
+     {
+      "championId": 79,
+      "pickTurn": 10
+     }
+    ],
+    "objectives": {
+     "baron": {
+      "first": false,
+      "kills": 0
+     },
+     "dragon": {
+      "first": false,
+      "kills": 1
+     },
+     "tower": {
+      "first": false,
+      "kills": 3
+     }
+    },
+    "teamId": 200,
+    "win": false
+   }
+  ],
+  "tournamentCode": ""
+ }
+}

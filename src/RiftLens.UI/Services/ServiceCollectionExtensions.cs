@@ -13,6 +13,9 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddHttpClient<IBackendStatus, HttpBackendStatus>(c => Configure(c, backend));
+        services.AddHttpClient<RiftLensApiClient>(c => Configure(c, backend))
+            .ConfigureHttpClient(c => c.Timeout = TimeSpan.FromSeconds(60)); // première synchro d'un profil : jusqu'à ~20 matchs
+        services.AddScoped<GameAssets>();
 
         services.AddSingleton<CommandPaletteState>();
         services.AddSingleton<IPaletteSource, NavigationPaletteSource>();

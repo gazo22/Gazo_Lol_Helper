@@ -1,0 +1,27 @@
+@inject GameAssets Game
+@* Résumé compact des runes : keystone + arbre secondaire. Mode étendu : les 6 runes + 3 fragments. *@
+<div class="rl-runes @(Expanded ? "rl-runes--expanded" : null)">
+    @if (Expanded && Perks.Count >= 6)
+    {
+        <div class="rl-runes__row">
+            @for (var i = 0; i < 4; i++) { <RuneIcon Id="Perks[i]" Size="@(i == 0 ? 32 : 24)" /> }
+        </div>
+        <div class="rl-runes__row">
+            <RuneIcon Id="SubStyle" Size="20" Muted="true" />
+            @for (var i = 4; i < 6; i++) { <RuneIcon Id="Perks[i]" Size="24" /> }
+        </div>
+    }
+    else
+    {
+        <RuneIcon Id="Keystone" Size="@Size" />
+        <RuneIcon Id="SubStyle" Size="@(Size * 2 / 3)" Muted="true" />
+    }
+</div>
+
+@code {
+    [Parameter] public int Keystone { get; set; }
+    [Parameter] public int SubStyle { get; set; }
+    [Parameter] public IReadOnlyList<int> Perks { get; set; } = [];
+    [Parameter] public bool Expanded { get; set; }
+    [Parameter] public int Size { get; set; } = 26;
+}

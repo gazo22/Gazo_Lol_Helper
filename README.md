@@ -22,6 +22,33 @@ assistant de draft (LCU) et overlay en jeu (Live Client Data).
 La **clé Riot reste exclusivement côté serveur** (Api + Collector). Le Desktop ne connaît que l'URL du backend
 et une clé d'accès RiftLens.
 
+## Client Riot API
+
+**Camille** (MingweiSamuel) a été évaluée puis écartée : générée automatiquement, sa maintenance .NET est irrégulière
+et elle impose son propre rate limiter. RiftLens utilise un client typé `HttpClient` (`Infrastructure/Riot`) limité
+aux endpoints utiles : Account-V1, Summoner-V4, League-V4, Champion-Mastery-V4, Match-V5 (ids, détail, timeline).
+
+### Rate limiting
+
+- File centralisée **par route** (`europe`, `euw1`…) : limite applicative + limite de chaque méthode.
+- Limites par défaut `20:1,100:120` (clé perso), puis mises à jour dynamiquement depuis `X-App-Rate-Limit` /
+  `X-Method-Rate-Limit`.
+- Fenêtres glissantes (plus strictes que les fenêtres fixes de Riot : on ne peut pas les dépasser).
+- 429 : respect de `Retry-After` ; une limite `application`/`method` gèle la file concernée, une limite `service`
+  ne retarde que la requête ; 3 nouvelles tentatives maximum.
+- L'Api et le Collector partagent la même clé dans deux processus : `Riot:RateLimit:BudgetShare` répartit le budget
+  (Docker Compose : 0.4 / 0.6). Dans un processus, les requêtes interactives passent avant celles de fond.
+- Un match déjà stocké n'est jamais retéléchargé ; la timeline est récupérée à la demande puis conservée (gzip).
+
+### Fixtures de test
+
+Les fixtures de `tests/RiftLens.Infrastructure.Tests/Fixtures` suivent fidèlement le schéma Riot / Data Dragon,
+mais ont été écrites hors ligne. Pour les remplacer par de vraies réponses :
+
+```powershell
+$env:RIOT_API_KEY = "RGAPI-..."; ./tools/capture-riot-fixtures.ps1 -GameName "Nom" -TagLine "EUW"
+```
+
 ## Démarrage
 
 Prérequis : .NET 10 SDK, Docker, Windows 10/11 + WebView2 pour le Desktop.

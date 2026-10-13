@@ -1,0 +1,9 @@
+@inject GameAssets Game
+<span class="rl-item" style="width:@(Size)px;height:@(Size)px" title="@Game.SpellName(Id)">
+    @if (Game.SpellIcon(Id) is { } src) { <img src="@src" alt="@Game.SpellName(Id)" loading="lazy" /> }
+</span>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public int Size { get; set; } = 22;
+}

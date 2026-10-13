@@ -8,9 +8,9 @@ namespace RiftLens.Api.Tests;
 
 public sealed class AccessKeyTests(AccessKeyTests.ApiFactory factory) : IClassFixture<AccessKeyTests.ApiFactory>
 {
-    private const string ValidKey = "test-key-0123456789-0123456789-abcdef";
+    internal const string ValidKey = "test-key-0123456789-0123456789-abcdef";
 
-    public sealed class ApiFactory : WebApplicationFactory<Program>
+    public class ApiFactory : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {

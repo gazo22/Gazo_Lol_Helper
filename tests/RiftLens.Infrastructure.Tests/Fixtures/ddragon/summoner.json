@@ -1,0 +1,16 @@
+{
+ "type": "summoner",
+ "version": "15.20.1",
+ "data": {
+  "SummonerFlash": {
+   "id": "SummonerFlash",
+   "name": "Saut éclair",
+   "key": "4"
+  },
+  "SummonerDot": {
+   "id": "SummonerDot",
+   "name": "Embrasement",
+   "key": "14"
+  }
+ }
+}

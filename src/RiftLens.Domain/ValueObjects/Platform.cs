@@ -39,3 +39,14 @@ public static class PlatformExtensions
 
     public static string ToHost(this RegionalRoute route) => route.ToString().ToLowerInvariant();
 }
+
+public static class MatchIds
+{
+    /// <summary>Déduit la plateforme d'un identifiant Match-V5 (<c>EUW1_7123456789</c> → Euw1).</summary>
+    public static bool TryGetPlatform(string matchId, out Platform platform)
+    {
+        platform = default;
+        var underscore = matchId.IndexOf('_', StringComparison.Ordinal);
+        return underscore > 0 && Enum.TryParse(matchId[..underscore], ignoreCase: true, out platform);
+    }
+}

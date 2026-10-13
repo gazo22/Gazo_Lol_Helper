@@ -1,0 +1,21 @@
+@using RiftLens.Contracts
+<div class="rl-rank-card">
+    <div class="rl-rank-card__label">@Label</div>
+    @if (Rank is null)
+    {
+        <RankBadge Tier="UNRANKED" />
+    }
+    else
+    {
+        <RankBadge Tier="@Rank.Tier" Division="@Rank.Division" LeaguePoints="Rank.LeaguePoints" />
+        <div class="rl-rank-card__record">
+            <span>@Rank.Wins V · @Rank.Losses D</span>
+            <WinrateBar Winrate="Rank.Winrate" ShowBar="false" />
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+    [Parameter] public RankDto? Rank { get; set; }
+}

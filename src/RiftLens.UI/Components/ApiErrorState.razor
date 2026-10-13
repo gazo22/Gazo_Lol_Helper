@@ -1,0 +1,35 @@
+@* État vide adapté à l'erreur renvoyée par le backend. *@
+<EmptyState Title="@Title" IconName="@IconName" Description="@Description">
+    @if (OnRetry.HasDelegate && Error is not ApiError.NotFound)
+    {
+        <button class="rl-btn" @onclick="OnRetry">Réessayer</button>
+    }
+</EmptyState>
+
+@code {
+    [Parameter] public ApiError Error { get; set; }
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public string NotFoundTitle { get; set; } = "Introuvable";
+    [Parameter] public EventCallback OnRetry { get; set; }
+
+    private string Title => Error switch
+    {
+        ApiError.NotFound => NotFoundTitle,
+        ApiError.Offline => "Backend injoignable",
+        ApiError.Unauthorized => "Clé d'accès refusée",
+        ApiError.RiotKeyInvalid => "Clé Riot expirée",
+        ApiError.RateLimited => "Quota Riot atteint",
+        _ => "Une erreur est survenue",
+    };
+
+    private string? Description => Error switch
+    {
+        ApiError.Offline => "Vérifiez que le serveur RiftLens tourne et que Backend:BaseUrl est correct.",
+        ApiError.Unauthorized => "La clé Backend:AccessKey du Desktop ne correspond à aucune clé du serveur.",
+        ApiError.RiotKeyInvalid => "La clé de développement Riot du serveur doit être régénérée (elle expire toutes les 24 h).",
+        ApiError.RateLimited => "Les requêtes reprendront automatiquement dans quelques secondes.",
+        _ => Message,
+    };
+
+    private string IconName => Error == ApiError.NotFound ? "search" : "bolt";
+}

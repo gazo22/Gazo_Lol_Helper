@@ -1,0 +1,57 @@
+@using RiftLens.Contracts
+@* Évolution du rang en SVG : axe Y en « score ladder » (400/tier), lignes de séparation des tiers. *@
+@if (Points.Count < 2)
+{
+    <div class="rl-chart-empty">L'historique se construit à chaque actualisation du profil.</div>
+}
+else
+{
+    <svg class="rl-chart" viewBox="0 0 @W @H" preserveAspectRatio="none" role="img" aria-label="Évolution des LP">
+        <defs>
+            <linearGradient id="rl-lp-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="var(--rl-accent)" stop-opacity=".35" />
+                <stop offset="1" stop-color="var(--rl-accent)" stop-opacity="0" />
+            </linearGradient>
+        </defs>
+        @foreach (var boundary in TierBoundaries())
+        {
+            <line x1="0" x2="@W" y1="@Y(boundary.Score)" y2="@Y(boundary.Score)" class="rl-chart__grid" />
+            <SvgText X="4" Y="@Inv(YValue(boundary.Score) - 4)" Class="rl-chart__label" Value="@boundary.Label" />
+        }
+        <path d="@AreaPath()" fill="url(#rl-lp-fill)" />
+        <path d="@LinePath()" fill="none" stroke="var(--rl-accent)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
+        @{ var last = Points[^1]; }
+        <circle cx="@X(Points.Count - 1)" cy="@Y(last.LadderScore)" r="4" fill="var(--rl-accent)" class="rl-chart__dot" />
+    </svg>
+    <div class="rl-chart__legend">
+        <span>@Points[0].CapturedAt.ToLocalTime().ToString("d MMM", CultureInfo.CurrentCulture)</span>
+        <span>@Points[^1].Tier @Points[^1].Division · @Points[^1].LeaguePoints LP</span>
+    </div>
+}
+
+@code {
+    private const double W = 320, H = 140, Pad = 10;
+    private static readonly string[] TierNames = ["Fer", "Bronze", "Argent", "Or", "Platine", "Émeraude", "Diamant", "Master"];
+
+    [Parameter] public IReadOnlyList<LpPointDto> Points { get; set; } = [];
+
+    private double Min => Points.Min(p => p.LadderScore) - 30;
+    private double Max => Points.Max(p => p.LadderScore) + 30;
+
+    private string X(int i) => Inv(i * W / (Points.Count - 1));
+    private double YValue(double score) => Pad + ((Max - score) / Math.Max(1, Max - Min) * (H - 2 * Pad));
+    private string Y(double score) => Inv(YValue(score));
+    private static string Inv(double v) => v.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private string LinePath() => "M" + string.Join(" L", Points.Select((p, i) => $"{X(i)},{Y(p.LadderScore)}"));
+    private string AreaPath() => LinePath() + $" L{Inv(W)},{Inv(H)} L0,{Inv(H)} Z";
+
+    private IEnumerable<(double Score, string Label)> TierBoundaries()
+    {
+        for (var t = 0; t < TierNames.Length; t++)
+        {
+            var score = t * 400;
+            if (score > Min && score < Max) { yield return (score, TierNames[t]); }
+        }
+    }
+}

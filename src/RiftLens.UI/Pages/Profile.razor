@@ -1,20 +1,196 @@
 @page "/profile/{GameName}/{TagLine}"
+@page "/profile/{Platform}/{GameName}/{TagLine}"
+@using RiftLens.Contracts
+@inject RiftLensApiClient Api
+@inject GameAssets Game
 
 <PageTitle>@GameName#@TagLine · RiftLens</PageTitle>
 
 <div class="rl-page">
-    <div class="rl-page__header">
-        <div>
-            <h1 class="rl-page__title">@GameName<span style="color:var(--rl-text-3)">#@TagLine</span></h1>
-            <div class="rl-page__subtitle">Profil joueur</div>
+    @if (_profile is null && _error == ApiError.None)
+    {
+        <ProfileSkeleton />
+    }
+    else if (_profile is null)
+    {
+        <Card NoPadding="true">
+            <ApiErrorState Error="_error" Message="@_message" NotFoundTitle="@($"{GameName}#{TagLine} introuvable")" OnRetry="() => LoadAsync(false)" />
+        </Card>
+    }
+    else
+    {
+        var p = _profile;
+        var top = p.TopChampions.FirstOrDefault();
+        <section class="rl-hero">
+            <div class="rl-hero__bg" style="@(top is null ? null : $"background-image:url('{Game.ChampionSplash(top.ChampionId)}')")"></div>
+            <div class="rl-hero__content">
+                <div class="rl-avatar">
+                    @if (Game.ProfileIcon(p.ProfileIconId) is { } icon) { <img src="@icon" alt="" /> }
+                    <span class="rl-avatar__level">@p.SummonerLevel</span>
+                </div>
+                <div class="rl-hero__identity">
+                    <h1 class="rl-hero__name">@p.GameName<span>#@p.TagLine</span></h1>
+                    <div class="rl-hero__sub">
+                        <span class="rl-pill">@p.Platform.ToUpperInvariant()</span>
+                        <span>Mis à jour @Fmt.Ago(p.LastRefreshedAt, DateTimeOffset.Now)</span>
+                        <button class="rl-btn rl-btn--ghost" disabled="@_refreshing" @onclick="() => LoadAsync(true)">
+                            <Icon Name="bolt" Class="@(_refreshing ? "rl-ico-16 rl-spin" : "rl-ico-16")" /> @(_refreshing ? "Actualisation…" : "Actualiser")
+                        </button>
+                    </div>
+                </div>
+                <div class="rl-hero__ranks">
+                    <RankCard Label="Solo/Duo" Rank="p.Solo" />
+                    <RankCard Label="Flex" Rank="p.Flex" />
+                </div>
+            </div>
+        </section>
+
+        <div class="rl-grid rl-grid--4" style="margin-bottom:var(--rl-space-6)">
+            <StatTile Label="@($"Winrate · {p.Stats.Games} parties")" Value="@Fmt.Percent(p.Stats.Winrate)" Hint="@($"{p.Stats.Wins} V – {p.Stats.Games - p.Stats.Wins} D")" Trend="@(p.Stats.Winrate >= 0.5 ? 1 : -1)" />
+            <StatTile Label="KDA" Value="@Fmt.Kda(p.Stats.Kda)" Hint="@($"{Fmt.Dec(p.Stats.Kills)} / {Fmt.Dec(p.Stats.Deaths)} / {Fmt.Dec(p.Stats.Assists)} · P/Kill {Fmt.Percent(p.Stats.KillParticipation, 0)}")" />
+            <StatTile Label="CS / min" Value="@Fmt.Dec(p.Stats.CsPerMinute)" Hint="@($"{Fmt.Num((int)p.Stats.DamagePerMinute)} dégâts / min")" />
+            <StatTile Label="Vision / min" Value="@Fmt.Dec(p.Stats.VisionPerMinute, 2)" />
         </div>
-    </div>
-    <Card NoPadding="true">
-        <EmptyState Title="Profils en cours de construction" IconName="user" Description="La recherche via Account-V1, le rang et l'historique arrivent en phase 2." />
-    </Card>
+
+        <div class="rl-profile-layout">
+            <aside class="rl-profile-side">
+                <Card Title="Champions les plus joués">
+                    @if (p.TopChampions.Count == 0) { <div class="rl-chart-empty">Aucune partie sur la Faille.</div> }
+                    <ul class="rl-champ-list">
+                        @foreach (var c in p.TopChampions)
+                        {
+                            <li>
+                                <ChampionIcon Src="@Game.ChampionIcon(c.ChampionId)" Name="@Game.ChampionName(c.ChampionId)" Size="36" />
+                                <div class="rl-champ-list__name">
+                                    <b>@Game.ChampionName(c.ChampionId)</b>
+                                    <small>@Fmt.Kda(c.Kda) KDA · @Fmt.Dec(c.CsPerMinute) CS/min</small>
+                                </div>
+                                <div class="rl-champ-list__wr">
+                                    <WinrateBar Winrate="c.Winrate" Games="c.Games" ShowBar="false" />
+                                    <small>@c.Games parties</small>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </Card>
+
+                <Card Title="Rôles">
+                    <div class="rl-roles">
+                        @{ var totalRoles = Math.Max(1, p.Roles.Sum(r => r.Games)); }
+                        @foreach (var role in new[] { "Top", "Jungle", "Middle", "Bottom", "Support" })
+                        {
+                            var share = p.Roles.FirstOrDefault(r => r.Role == role);
+                            var pct = (share?.Games ?? 0) / (double)totalRoles;
+                            <div class="rl-roles__item @(pct == 0 ? "is-empty" : null)" title="@($"{share?.Games ?? 0} parties")">
+                                <div class="rl-roles__bar"><span style="height:@((pct * 100).ToString("0", CultureInfo.InvariantCulture))%"></span></div>
+                                <RoleIcon Role="@role" />
+                                <small>@Fmt.Percent(pct, 0)</small>
+                            </div>
+                        }
+                    </div>
+                </Card>
+
+                <Card Title="Évolution Solo/Duo">
+                    <LpChart Points="p.LpHistory" />
+                </Card>
+
+                @if (p.Masteries.Count > 0)
+                {
+                    <Card Title="Maîtrises">
+                        <div class="rl-masteries">
+                            @foreach (var m in p.Masteries)
+                            {
+                                <div class="rl-masteries__item">
+                                    <ChampionIcon Src="@Game.ChampionIcon(m.ChampionId)" Name="@Game.ChampionName(m.ChampionId)" Size="44" Round="true" Level="m.Level" />
+                                    <small>@Fmt.Compact(m.Points)</small>
+                                </div>
+                            }
+                        </div>
+                    </Card>
+                }
+            </aside>
+
+            <section class="rl-profile-main">
+                <div class="rl-section-head">
+                    <h2>Historique</h2>
+                    <span>@_matches.Count parties affichées</span>
+                </div>
+                @if (_matches.Count == 0 && !_loadingMatches)
+                {
+                    <Card NoPadding="true"><EmptyState Title="Aucun match" IconName="list" Description="Aucune partie récente trouvée pour ce compte." /></Card>
+                }
+                <div class="rl-match-list">
+                    @foreach (var m in _matches) { <MatchRow @key="m.MatchId" Match="m" /> }
+                    @if (_loadingMatches)
+                    {
+                        @for (var i = 0; i < 3; i++) { <div class="rl-match rl-match--skeleton"><Skeleton Height="72px" /></div> }
+                    }
+                </div>
+                @if (_hasMore && _matches.Count > 0)
+                {
+                    <button class="rl-btn rl-load-more" disabled="@_loadingMatches" @onclick="LoadMoreAsync">Charger plus</button>
+                }
+            </section>
+        </div>
+    }
 </div>
 
 @code {
+    private const int PageSize = 10;
+    private ProfileDto? _profile;
+    private ApiError _error;
+    private string? _message;
+    private bool _refreshing;
+    private bool _loadingMatches;
+    private bool _hasMore = true;
+    private readonly List<MatchSummaryDto> _matches = [];
+
+    [Parameter] public string Platform { get; set; } = "euw1";
     [Parameter] public string GameName { get; set; } = string.Empty;
     [Parameter] public string TagLine { get; set; } = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _profile = null;
+        _error = ApiError.None;
+        _matches.Clear();
+        _hasMore = true;
+        await Game.EnsureLoadedAsync();
+        await LoadAsync(false);
+    }
+
+    private async Task LoadAsync(bool refresh)
+    {
+        _refreshing = refresh;
+        if (!refresh) { _error = ApiError.None; }
+
+        var result = await Api.GetProfileAsync(Platform, GameName, TagLine, refresh);
+        _refreshing = false;
+        if (!result.IsSuccess)
+        {
+            if (_profile is null) { (_error, _message) = (result.Error, result.Message); }
+            return;
+        }
+
+        _profile = result.Value;
+        _matches.Clear();
+        _hasMore = true;
+        await LoadMoreAsync();
+    }
+
+    private async Task LoadMoreAsync()
+    {
+        if (_profile is null) { return; }
+
+        _loadingMatches = true;
+        StateHasChanged();
+        var result = await Api.GetHistoryAsync(Platform, _profile.Puuid, _matches.Count, PageSize);
+        _loadingMatches = false;
+        if (result.IsSuccess)
+        {
+            var known = _matches.Select(m => m.MatchId).ToHashSet();
+            _matches.AddRange(result.Value!.Where(m => known.Add(m.MatchId)));
+            _hasMore = result.Value!.Count == PageSize;
+        }
+    }
 }

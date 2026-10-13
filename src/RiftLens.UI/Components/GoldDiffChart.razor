@@ -1,0 +1,83 @@
+@using RiftLens.Contracts
+@* Écart d'or (bleu − rouge) par minute : aire bleue au-dessus de zéro, rouge en dessous, survol interactif. *@
+@if (Points.Count < 2)
+{
+    <div class="rl-chart-empty">Timeline indisponible pour ce match.</div>
+}
+else
+{
+    <div class="rl-gold">
+        <svg class="rl-chart rl-chart--tall" viewBox="0 0 @W @H" preserveAspectRatio="none" role="img" aria-label="Écart d'or" @onmouseleave="() => _hover = null">
+            <defs>
+                <clipPath id="rl-gold-above"><rect x="0" y="0" width="@W" height="@Inv(Y(0))" /></clipPath>
+                <clipPath id="rl-gold-below"><rect x="0" y="@Inv(Y(0))" width="@W" height="@Inv(H - Y(0))" /></clipPath>
+                <linearGradient id="rl-gold-blue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="var(--rl-team-blue)" stop-opacity=".55" /><stop offset="1" stop-color="var(--rl-team-blue)" stop-opacity=".05" />
+                </linearGradient>
+                <linearGradient id="rl-gold-red" x1="0" y1="1" x2="0" y2="0">
+                    <stop offset="0" stop-color="var(--rl-team-red)" stop-opacity=".55" /><stop offset="1" stop-color="var(--rl-team-red)" stop-opacity=".05" />
+                </linearGradient>
+            </defs>
+            @foreach (var g in Gridlines())
+            {
+                <line x1="0" x2="@W" y1="@Inv(Y(g))" y2="@Inv(Y(g))" class="rl-chart__grid" />
+                <SvgText X="4" Y="@Inv(Y(g) - 4)" Class="rl-chart__label" Value="@((g > 0 ? "+" : "−") + Fmt.Compact(Math.Abs(g)))" />
+            }
+            <line x1="0" x2="@W" y1="@Inv(Y(0))" y2="@Inv(Y(0))" class="rl-chart__zero" />
+            <path d="@Area()" fill="url(#rl-gold-blue)" clip-path="url(#rl-gold-above)" />
+            <path d="@Area()" fill="url(#rl-gold-red)" clip-path="url(#rl-gold-below)" />
+            <path d="@Line()" fill="none" stroke="var(--rl-text-1)" stroke-opacity=".8" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+            @for (var i = 0; i < Points.Count; i++)
+            {
+                var index = i;
+                <rect x="@Inv(X(i) - Step / 2)" y="0" width="@Inv(Step)" height="@H" fill="transparent" @onmouseenter="() => _hover = index" />
+            }
+            @if (_hover is { } h)
+            {
+                <line x1="@Inv(X(h))" x2="@Inv(X(h))" y1="0" y2="@H" class="rl-chart__cursor" />
+                <circle cx="@Inv(X(h))" cy="@Inv(Y(Points[h].Diff))" r="4" fill="@(Points[h].Diff >= 0 ? "var(--rl-team-blue)" : "var(--rl-team-red)")" />
+            }
+        </svg>
+        @if (_hover is { } hv)
+        {
+            var p = Points[hv];
+            <div class="rl-gold__tip" style="left:@Inv(X(hv) / W * 100)%">
+                <strong>@p.Minute min</strong>
+                <span style="color:@(p.Diff >= 0 ? "var(--rl-team-blue)" : "var(--rl-team-red)")">@(p.Diff >= 0 ? "+" : "−")@Fmt.Num(Math.Abs(p.Diff)) or</span>
+                <small>@Fmt.Compact(p.BlueGold) · @Fmt.Compact(p.RedGold)</small>
+            </div>
+        }
+        <div class="rl-chart__legend">
+            <span>0 min</span>
+            <span><i class="rl-dot" style="background:var(--rl-team-blue)"></i>Équipe bleue <i class="rl-dot" style="background:var(--rl-team-red);margin-left:12px"></i>Équipe rouge</span>
+            <span>@Points[^1].Minute min</span>
+        </div>
+    </div>
+}
+
+@code {
+    private const double W = 800, H = 220, Pad = 14;
+    private int? _hover;
+
+    [Parameter] public IReadOnlyList<GoldDiffPointDto> Points { get; set; } = [];
+
+    private double Extent => Math.Max(1000, Points.Max(p => Math.Abs(p.Diff)) * 1.15);
+    private double Step => W / (Points.Count - 1);
+
+    private double X(int i) => i * Step;
+    private double Y(double diff) => Pad + ((Extent - diff) / (2 * Extent) * (H - 2 * Pad));
+    private static string Inv(double v) => v.ToString("0.##", CultureInfo.InvariantCulture);
+
+    private string Line() => "M" + string.Join(" L", Points.Select((p, i) => $"{Inv(X(i))},{Inv(Y(p.Diff))}"));
+    private string Area() => Line() + $" L{Inv(W)},{Inv(Y(0))} L0,{Inv(Y(0))} Z";
+
+    private IEnumerable<int> Gridlines()
+    {
+        var step = Extent > 12000 ? 5000 : Extent > 5000 ? 2500 : 1000;
+        for (var g = step; g < Extent; g += step)
+        {
+            yield return g;
+            yield return -g;
+        }
+    }
+}

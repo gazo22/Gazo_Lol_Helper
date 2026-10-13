@@ -1,0 +1,21 @@
+{
+ "type": "champion",
+ "format": "standAloneComplex",
+ "version": "15.20.1",
+ "data": {
+  "Ahri": {
+   "version": "15.20.1",
+   "id": "Ahri",
+   "key": "103",
+   "name": "Ahri",
+   "title": "le renard à neuf queues"
+  },
+  "MonkeyKing": {
+   "version": "15.20.1",
+   "id": "MonkeyKing",
+   "key": "62",
+   "name": "Wukong",
+   "title": "le roi des singes"
+  }
+ }
+}

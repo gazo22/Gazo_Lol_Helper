@@ -1,0 +1,139 @@
+@page "/match/{MatchId}"
+@using RiftLens.Contracts
+@inject RiftLensApiClient Api
+@inject GameAssets Game
+
+<PageTitle>Match · RiftLens</PageTitle>
+
+<div class="rl-page">
+    @if (_match is null && _error == ApiError.None)
+    {
+        <Skeleton Width="320px" Height="34px" />
+        <div class="rl-card" style="margin:24px 0;padding:20px"><Skeleton Height="220px" /></div>
+        <div class="rl-grid rl-grid--2"><Skeleton Height="320px" /><Skeleton Height="320px" /></div>
+    }
+    else if (_match is null)
+    {
+        <Card NoPadding="true"><ApiErrorState Error="_error" Message="@_message" NotFoundTitle="Match introuvable" OnRetry="LoadAsync" /></Card>
+    }
+    else
+    {
+        var m = _match;
+        var blue = m.Teams.FirstOrDefault(t => t.TeamId == 100);
+        var red = m.Teams.FirstOrDefault(t => t.TeamId == 200);
+        var maxDamage = Math.Max(1, m.Teams.SelectMany(t => t.Players).Max(p => p.Damage));
+        <div class="rl-page__header">
+            <div>
+                <h1 class="rl-page__title">@Queues.Name(m.QueueId)</h1>
+                <div class="rl-page__subtitle rl-match-head">
+                    <span>@m.GameStart.ToLocalTime().ToString("dddd d MMMM · HH:mm", CultureInfo.CurrentCulture)</span>
+                    <span>@Fmt.Duration(m.DurationSeconds)</span>
+                    <span>Patch @PatchOf(m.GameVersion)</span>
+                    @if (m.IsRemake) { <span class="rl-pill">Remake</span> }
+                </div>
+            </div>
+            @if (blue is not null && red is not null)
+            {
+                <div class="rl-scoreline">
+                    <span class="rl-scoreline__team rl-scoreline__team--blue">@blue.Kills</span>
+                    <span class="rl-scoreline__vs">
+                        <small>Or</small>@Fmt.Compact(blue.Gold) – @Fmt.Compact(red.Gold)
+                    </span>
+                    <span class="rl-scoreline__team rl-scoreline__team--red">@red.Kills</span>
+                </div>
+            }
+        </div>
+
+        <Card Title="Écart d'or" Class="rl-gold-card">
+            @if (_gold is null) { <Skeleton Height="220px" /> }
+            else { <GoldDiffChart Points="_gold" /> }
+        </Card>
+
+        <div class="rl-teams">
+            @foreach (var team in m.Teams)
+            {
+                <Card NoPadding="true" Class="@($"rl-team rl-team--{(team.TeamId == 100 ? "blue" : "red")}")">
+                    <header class="rl-team__head">
+                        <div>
+                            <b>@(team.TeamId == 100 ? "Équipe bleue" : "Équipe rouge")</b>
+                            <span class="rl-pill @(team.Win ? "rl-pill--win" : "rl-pill--loss")">@(team.Win ? "Victoire" : "Défaite")</span>
+                        </div>
+                        <div class="rl-team__bans" title="Bannissements">
+                            @foreach (var ban in team.Bans) { <ChampionIcon Src="@Game.ChampionIcon(ban)" Name="@Game.ChampionName(ban)" Size="20" /> }
+                        </div>
+                    </header>
+                    <table class="rl-table rl-team__table">
+                        <thead>
+                            <tr><th>Joueur</th><th>KDA</th><th>CS</th><th>Dégâts</th><th>Vision</th><th>Items</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var pl in team.Players)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="rl-player-cell">
+                                            <ChampionIcon Src="@Game.ChampionIcon(pl.ChampionId)" Name="@Game.ChampionName(pl.ChampionId)" Size="34" Level="pl.ChampLevel" />
+                                            <div class="rl-player-cell__spells">
+                                                @foreach (var s in pl.Summoners) { <SpellIcon Id="s" Size="16" /> }
+                                            </div>
+                                            <RuneTree Keystone="@pl.Perks.ElementAtOrDefault(0)" SubStyle="pl.SubStyle" Size="18" />
+                                            @if (pl.GameName is not null && pl.TagLine is not null)
+                                            {
+                                                <a class="rl-player-cell__name" href="@Routes.Profile(pl.GameName, pl.TagLine)">@pl.GameName</a>
+                                            }
+                                            else { <span class="rl-player-cell__name">—</span> }
+                                        </div>
+                                    </td>
+                                    <td class="rl-nowrap">@pl.Kills/@pl.Deaths/@pl.Assists</td>
+                                    <td>@pl.Cs <small class="rl-muted">@Fmt.Dec(pl.Cs / Math.Max(1, m.DurationSeconds / 60.0))</small></td>
+                                    <td>
+                                        <div class="rl-dmg">
+                                            <span>@Fmt.Compact(pl.Damage)</span>
+                                            <span class="rl-dmg__track"><span style="width:@((pl.Damage * 100.0 / maxDamage).ToString("0", CultureInfo.InvariantCulture))%"></span></span>
+                                        </div>
+                                    </td>
+                                    <td>@pl.VisionScore</td>
+                                    <td><ItemRow Items="pl.Items" Size="22" /></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </Card>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private MatchDetailDto? _match;
+    private List<GoldDiffPointDto>? _gold;
+    private ApiError _error;
+    private string? _message;
+
+    [Parameter] public string MatchId { get; set; } = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await Game.EnsureLoadedAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        (_match, _gold, _error) = (null, null, ApiError.None);
+        var result = await Api.GetMatchAsync(MatchId);
+        if (!result.IsSuccess)
+        {
+            (_error, _message) = (result.Error, result.Message);
+            return;
+        }
+
+        _match = result.Value;
+        StateHasChanged();
+        var gold = await Api.GetGoldDiffAsync(MatchId);
+        _gold = gold.Value ?? [];
+    }
+
+    private static string PatchOf(string version) =>
+        string.Join('.', version.Split('.').Take(2));
+}

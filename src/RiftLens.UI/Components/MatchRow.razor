@@ -1,0 +1,73 @@
+@using RiftLens.Contracts
+@inject GameAssets Game
+@inject NavigationManager Nav
+
+<article class="rl-match @ResultClass" @onclick="Open" role="link" tabindex="0" @onkeydown="OnKey">
+    <div class="rl-match__meta">
+        <div class="rl-match__queue">@Queues.Name(Match.QueueId)</div>
+        <div class="rl-match__ago">@Fmt.Ago(Match.GameStart, DateTimeOffset.Now)</div>
+        <div class="rl-match__result">@ResultLabel</div>
+        <div class="rl-match__duration">@Fmt.Duration(Match.DurationSeconds)</div>
+    </div>
+
+    <div class="rl-match__champ">
+        <ChampionIcon Src="@Game.ChampionIcon(Match.ChampionId)" Name="@Game.ChampionName(Match.ChampionId)" Size="52" Level="Match.ChampLevel" />
+        <div class="rl-match__loadout">
+            <div class="rl-match__spells">
+                @foreach (var s in Match.Summoners) { <SpellIcon Id="s" /> }
+            </div>
+            <RuneTree Keystone="Match.Keystone" SubStyle="Match.SubStyle" Size="22" />
+        </div>
+    </div>
+
+    <div class="rl-match__kda">
+        <div class="rl-match__kda-line"><b>@Match.Kills</b> / <b class="rl-loss-text">@Match.Deaths</b> / <b>@Match.Assists</b></div>
+        <div class="rl-match__kda-ratio" style="color:@KdaColor">@Fmt.Kda(Match.Kda) KDA</div>
+        <div class="rl-match__kp">P/Kill @Fmt.Percent(Match.KillParticipation, 0)</div>
+    </div>
+
+    <div class="rl-match__stats">
+        <span><small>CS</small>@Match.Cs <em>(@Fmt.Dec(Match.CsPerMinute))</em></span>
+        <span><small>Dégâts</small>@Fmt.Compact(Match.Damage)</span>
+        <span><small>Vision</small>@Match.VisionScore</span>
+    </div>
+
+    <ItemRow Items="Match.Items" Size="26" />
+
+    <div class="rl-match__teams">
+        @foreach (var team in Match.Players.GroupBy(p => p.TeamId))
+        {
+            <ul>
+                @foreach (var p in team)
+                {
+                    <li>
+                        <ChampionIcon Src="@Game.ChampionIcon(p.ChampionId)" Name="@Game.ChampionName(p.ChampionId)" Size="16" />
+                        <span>@(p.GameName ?? "—")</span>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</article>
+
+@code {
+    [Parameter, EditorRequired] public MatchSummaryDto Match { get; set; } = default!;
+
+    private string ResultClass => Match.IsRemake ? "rl-match--remake" : Match.Win ? "rl-match--win" : "rl-match--loss";
+    private string ResultLabel => Match.IsRemake ? "Remake" : Match.Win ? "Victoire" : "Défaite";
+
+    private string KdaColor => Match.Kda switch
+    {
+        >= 5 => "var(--rl-accent-strong)",
+        >= 3 => "var(--rl-win)",
+        < 1.5 => "var(--rl-loss)",
+        _ => "var(--rl-text-2)",
+    };
+
+    private void Open() => Nav.NavigateTo($"match/{Uri.EscapeDataString(Match.MatchId)}");
+
+    private void OnKey(KeyboardEventArgs e)
+    {
+        if (e.Key is "Enter" or " ") { Open(); }
+    }
+}

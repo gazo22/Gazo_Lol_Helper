@@ -1,0 +1,13 @@
+@inject GameAssets Game
+<div class="rl-items">
+    @for (var i = 0; i < 7; i++)
+    {
+        var id = Items.ElementAtOrDefault(i);
+        <ItemSlot Src="@Game.ItemIcon(id)" Name="@Game.ItemName(id)" Size="@(i == 6 ? Size - 4 : Size)" />
+    }
+</div>
+
+@code {
+    [Parameter] public IReadOnlyList<int> Items { get; set; } = [];
+    [Parameter] public int Size { get; set; } = 26;
+}

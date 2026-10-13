@@ -26,6 +26,8 @@ services:
       ConnectionStrings__RiftLens: "Server=sqlserver,1433;Database=RiftLens;User Id=sa;Password=${SQL_SA_PASSWORD};Encrypt=False;TrustServerCertificate=True"
       Riot__ApiKey: ${RIOT_API_KEY:?RIOT_API_KEY manquant dans .env}
       Access__Keys__0: ${RIFTLENS_ACCESS_KEY:?RIFTLENS_ACCESS_KEY manquant dans .env}
+      # Api + Collector partagent la même clé Riot : 40 % / 60 % du budget.
+      Riot__RateLimit__BudgetShare: "0.4"
     ports:
       - "5080:8080"
     depends_on:

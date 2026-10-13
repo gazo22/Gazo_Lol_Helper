@@ -20,6 +20,7 @@ builder.Services.AddOptions<AccessKeyOptions>()
     .ValidateOnStart();
 
 builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<RiotExceptionHandler>();
 builder.Services.AddHealthChecks().AddDbContextCheck<RiftLensDbContext>("database");
 
 // Limite entrante par IP : protège le quota Riot si l'Api est exposée.
@@ -48,6 +49,8 @@ app.UseMiddleware<AccessKeyMiddleware>();
 
 app.MapHealthChecks("/health");
 app.MapMetaEndpoints();
+app.MapPlayerEndpoints();
+app.MapMatchEndpoints();
 
 if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
 {
