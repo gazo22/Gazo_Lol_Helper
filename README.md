@@ -14,7 +14,7 @@ et assistant de draft (LCU).
    - ou la page **Releases** (créée automatiquement pour chaque tag `vX.Y.Z`).
 2. Lancer l'installeur (droits administrateur). Il installe, si nécessaire :
    - **Microsoft Edge WebView2 Runtime** (déjà présent sur la plupart des Windows 10/11) ;
-   - **SQL Server 2022 Express**, instance dédiée `RIFTLENS` (téléchargement ~250 Mo, quelques minutes) ;
+   - **SQL Server 2022 Express**, instance dédiée `RIFTLENS` (inclus dans l'installeur, quelques minutes) ;
    - **RiftLens** : l'application et le service Windows **« RiftLens Server »** (démarrage automatique).
 3. Au premier lancement, l'assistant demande votre **clé API Riot** :
    connectez-vous sur [developer.riotgames.com](https://developer.riotgames.com), copiez la *Development API Key*
@@ -193,6 +193,6 @@ Le projet WPF se compile aussi sous Linux/macOS (`EnableWindowsTargeting`), mais
 ```powershell
 dotnet publish src/RiftLens.Desktop -c Release -r win-x64 --self-contained -o artifacts/app
 dotnet publish src/RiftLens.Api -c Release -r win-x64 --self-contained -o artifacts/server
-# télécharger les deux programmes listés dans installer/Bundle/redist/README.md, puis :
+# préparer installer/Bundle/redist comme indiqué dans installer/Bundle/redist/README.md, puis :
 dotnet build installer/Bundle/RiftLens.Bundle.wixproj -c Release
 ```

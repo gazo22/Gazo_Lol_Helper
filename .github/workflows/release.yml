@@ -44,7 +44,15 @@ jobs:
         run: |
           $redist = "installer/Bundle/redist"
           Invoke-WebRequest "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "$redist/MicrosoftEdgeWebview2Setup.exe"
-          Invoke-WebRequest "https://go.microsoft.com/fwlink/p/?linkid=2216019" -OutFile "$redist/SQL2022-SSEI-Expr.exe"
+          Invoke-WebRequest "https://go.microsoft.com/fwlink/p/?linkid=2216019" -OutFile "$env:RUNNER_TEMP/SQL2022-SSEI-Expr.exe"
+          # Le bootstrapper SSEI ne sert qu'à télécharger le média complet, embarqué ensuite dans l'installeur.
+          $media = "$env:RUNNER_TEMP/sqlmedia"
+          $p = Start-Process "$env:RUNNER_TEMP/SQL2022-SSEI-Expr.exe" -ArgumentList "/ACTION=Download", "/MEDIAPATH=$media", "/MEDIATYPE=Core", "/LANGUAGE=en-US", "/QUIET" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Téléchargement de SQL Server Express : code $($p.ExitCode)" }
+          $exe = Get-ChildItem $media -Filter "SQLEXPR*_x64_ENU.exe" -Recurse | Select-Object -First 1
+          if (-not $exe) { Get-ChildItem $media -Recurse | Format-Table FullName, Length; throw "SQLEXPR_x64_ENU.exe introuvable" }
+          Copy-Item $exe.FullName "$redist/SQLEXPR_x64_ENU.exe"
+          Get-ChildItem $redist | Format-Table Name, Length
 
       - name: Build installeur (WiX)
         run: dotnet build installer/Bundle/RiftLens.Bundle.wixproj -c Release -p:Version=${{ steps.version.outputs.value }}

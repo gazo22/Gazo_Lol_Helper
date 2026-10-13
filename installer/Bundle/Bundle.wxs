@@ -2,7 +2,7 @@
 <!--
   Installeur tout-en-un RiftLens-Setup.exe :
     1. Microsoft Edge WebView2 Runtime (si absent)
-    2. SQL Server 2022 Express, instance RIFTLENS (si absente)
+    2. SQL Server 2022 Express, instance RIFTLENS (si absente, média embarqué)
     3. RiftLens.msi (application + service local)
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
@@ -41,17 +41,20 @@
                   PerMachine="yes" Permanent="yes" Vital="yes" Cache="remove"
                   DetectCondition="(WebView2MachineVersion AND WebView2MachineVersion &lt;&gt; &quot;0.0.0.0&quot;) OR (WebView2UserVersion AND WebView2UserVersion &lt;&gt; &quot;0.0.0.0&quot;)"
                   InstallArguments="/silent /install">
-        <ExePackagePayload SourceFile="!(bindpath.Redist)MicrosoftEdgeWebview2Setup.exe" />
+        <ExePackagePayload Name="MicrosoftEdgeWebview2Setup.exe" SourceFile="!(bindpath.Redist)MicrosoftEdgeWebview2Setup.exe" />
       </ExePackage>
 
-      <!-- Le bootstrapper SSEI télécharge SQL Server Express (~250 Mo) pendant l'installation. -->
+      <!--
+        Média complet SQL Server 2022 Express (embarqué, ~250 Mo) : installation hors ligne.
+        Options relayées à setup.exe : instance dédiée, accès local uniquement (ni TCP ni canaux nommés),
+        le service RiftLens (SYSTEM) et les administrateurs sont sysadmin.
+      -->
       <ExePackage Id="SqlExpress"
                   DisplayName="Microsoft SQL Server 2022 Express (instance RIFTLENS)"
                   PerMachine="yes" Permanent="yes" Vital="yes" Cache="remove"
                   DetectCondition="SqlRiftLensInstance"
-                  InstallArguments="/ACTION=Install /QUIET /IACCEPTSQLSERVERLICENSETERMS /ConfigurationFile=&quot;[WixBundleExecutePackageCacheFolder]SqlExpressConfiguration.ini&quot;">
-        <ExePackagePayload SourceFile="!(bindpath.Redist)SQL2022-SSEI-Expr.exe" />
-        <Payload SourceFile="SqlExpressConfiguration.ini" />
+                  InstallArguments="/Q /ACTION=Install /FEATURES=SQLEngine /INSTANCENAME=RIFTLENS /INSTANCEID=RIFTLENS /SQLSYSADMINACCOUNTS=&quot;NT AUTHORITY\SYSTEM&quot; &quot;BUILTIN\Administrators&quot; /ADDCURRENTUSERASSQLADMIN=False /TCPENABLED=0 /NPENABLED=0 /SQLSVCSTARTUPTYPE=Automatic /BROWSERSVCSTARTUPTYPE=Disabled /UPDATEENABLED=False /IACCEPTSQLSERVERLICENSETERMS /SUPPRESSPRIVACYSTATEMENTNOTICE /INDICATEPROGRESS">
+        <ExePackagePayload Name="SQLEXPR_x64_ENU.exe" SourceFile="!(bindpath.Redist)SQLEXPR_x64_ENU.exe" />
         <ExitCode Value="3010" Behavior="scheduleReboot" />
       </ExePackage>
 
