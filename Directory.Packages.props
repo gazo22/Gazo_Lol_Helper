@@ -1,5 +1,11 @@
 <Project>
+  <PropertyGroup>
+    <!-- Permet de forcer la version de dépendances transitives (correctifs de sécurité). -->
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
   <ItemGroup>
+    <!-- Transitive (Microsoft.Data.SqlClient) : versions 9.0.x frappées par GHSA-2fmv-rv2c-59x7 / GHSA-846f-f764-76mx. -->
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.12" />
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebView.Wpf" Version="10.0.110" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
