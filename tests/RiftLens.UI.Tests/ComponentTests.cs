@@ -16,6 +16,17 @@ public sealed class ComponentTests : BunitContext
         Services.AddSingleton<GameAssets>();
     }
 
+    [Fact]
+    public void SkillOrderGrid_allume_le_niveau_de_chaque_sort()
+    {
+        var cut = Render<SkillOrderGrid>(p => p.Add(x => x.Sequence, "QWEQQR"));
+
+        var rows = cut.FindAll(".rl-skill-grid__row");
+        Assert.Equal(4, rows.Count);
+        Assert.Equal(["1", "4", "5"], rows[0].QuerySelectorAll(".is-on").Select(c => c.TextContent).ToArray());
+        Assert.Equal("6", rows[3].QuerySelector(".is-ult")!.TextContent);
+    }
+
     [Theory]
     [InlineData("S+", "rl-tier--splus")]
     [InlineData("a", "rl-tier--a")]

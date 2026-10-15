@@ -99,7 +99,21 @@ public sealed record TimelineDto(TimelineInfoDto Info);
 
 public sealed record TimelineInfoDto(long FrameInterval, IReadOnlyList<TimelineFrameDto> Frames);
 
-public sealed record TimelineFrameDto(long Timestamp, IReadOnlyDictionary<string, ParticipantFrameDto> ParticipantFrames);
+public sealed record TimelineFrameDto(long Timestamp, IReadOnlyDictionary<string, ParticipantFrameDto> ParticipantFrames)
+{
+    /// <summary>Événements de la minute (achats, montées de sorts…). Absent des timelines stockées avant leur prise en charge.</summary>
+    public IReadOnlyList<TimelineEventDto>? Events { get; init; }
+}
+
+/// <param name="Type">ITEM_PURCHASED, ITEM_SOLD, ITEM_UNDO, SKILL_LEVEL_UP… (seuls quelques types sont exploités).</param>
+public sealed record TimelineEventDto(
+    string Type,
+    long Timestamp,
+    int ParticipantId,
+    int ItemId,
+    int BeforeId,
+    int SkillSlot,
+    string? LevelUpType);
 
 public sealed record ParticipantFrameDto(int ParticipantId, int TotalGold, int Level, int MinionsKilled, int JungleMinionsKilled, int Xp);
 

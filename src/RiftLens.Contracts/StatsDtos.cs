@@ -39,7 +39,31 @@ public sealed record ChampionDetailDto(
     IReadOnlyList<MatchupDto> BestMatchups,
     IReadOnlyList<MatchupDto> WorstMatchups,
     int MinBuildGames,
-    int MinMatchupGames);
+    int MinMatchupGames)
+{
+    /// <summary>Objets de départ les plus joués (issus des timelines échantillonnées).</summary>
+    public IReadOnlyList<BuildDto> StarterItems { get; init; } = [];
+
+    /// <summary>Ordres d'achat des objets complets (bottes comprises), dans l'ordre.</summary>
+    public IReadOnlyList<BuildDto> ItemOrders { get; init; } = [];
+
+    public IReadOnlyList<SkillOrderDto> SkillOrders { get; init; } = [];
+
+    /// <summary>Paires de sorts d'invocateur les plus jouées (sur tous les matchs).</summary>
+    public IReadOnlyList<BuildDto> SummonerSpells { get; init; } = [];
+
+    /// <summary>Parties avec timeline pour ce rôle (base des trois listes ci-dessus).</summary>
+    public int TimelineGames { get; init; }
+
+    public int MinSequenceGames { get; init; }
+}
+
+/// <param name="Sequence">Sorts montés niveau par niveau, ex. « QWEQQRQEQEREEWW ».</param>
+/// <param name="Priority">Ordre de maximisation, ex. « Q > E > W ».</param>
+public sealed record SkillOrderDto(string Sequence, string Priority, int Games, int Wins)
+{
+    public double Winrate => Games == 0 ? 0 : (double)Wins / Games;
+}
 
 public sealed record BuildDto(IReadOnlyList<int> Items, int Games, int Wins)
 {

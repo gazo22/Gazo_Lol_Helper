@@ -132,5 +132,19 @@ public sealed class CollectorPipelineTests : IDisposable
         public Task<RiftLens.Infrastructure.Riot.Dtos.TimelineDto?> GetTimelineAsync(RegionalRoute r, string id, CancellationToken ct = default) => _inner.GetTimelineAsync(r, id, ct);
     }
 
+    [Fact]
+    public void L_echantillonnage_des_timelines_est_deterministe_et_proche_du_taux()
+    {
+        var pipeline = Create(new CollectorOptions { TimelineSampleRate = 1.0 / 3 });
+        var ids = Enumerable.Range(0, 3000).Select(i => $"EUW1_{7_500_000_000L + i}").ToList();
+
+        var sampled = ids.Count(pipeline.ShouldFetchTimeline);
+
+        Assert.InRange(sampled, 850, 1150);
+        Assert.Equal(sampled, ids.Count(pipeline.ShouldFetchTimeline));
+        Assert.False(Create(new CollectorOptions { TimelineSampleRate = 0 }).ShouldFetchTimeline(ids[0]));
+        Assert.True(Create(new CollectorOptions { TimelineSampleRate = 1 }).ShouldFetchTimeline(ids[0]));
+    }
+
     public void Dispose() => _db.Dispose();
 }

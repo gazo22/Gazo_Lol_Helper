@@ -21,7 +21,7 @@ public sealed class StatsTests : IDisposable
         new(_db.Create(), Options.Create(new StatsOptions { MinGames = minGames, MinBuildGames = minBuild, MinMatchupGames = minMatchup, MinPickrate = 0 }));
 
     /// <summary>Insère n copies du match fixture (bleu gagne) ; si <paramref name="flip"/>, les rouges gagnent.</summary>
-    private async Task SeedAsync(int count, RankTier tier, int offset = 0, bool flip = false)
+    private async Task SeedAsync(int count, RankTier tier, int offset = 0, bool flip = false, bool timeline = false)
     {
         await using var ctx = _db.Create();
         for (var i = 0; i < count; i++)
@@ -34,6 +34,11 @@ public sealed class StatsTests : IDisposable
             };
             var match = MatchMapper.ToEntity(dto);
             match.SourceTier = tier;
+            if (timeline)
+            {
+                match.TimelineGzip = MatchService.Compress(Matches.TimelineAnalyzerTests.Typical(pid: 3)); // Ahri
+            }
+
             ctx.Matches.Add(match);
         }
 
@@ -104,6 +109,27 @@ public sealed class StatsTests : IDisposable
         Assert.All(chall.Rows, r => Assert.Equal("Middle", r.Role));
         Assert.Equal(1.0, chall.Rows.Single(r => r.ChampionId == 103).Winrate);
         Assert.Equal(0.0, chall.Rows.Single(r => r.ChampionId == 517).Winrate);
+    }
+
+    [Fact]
+    public async Task Detail_champion_avec_depart_ordre_d_achat_sorts_et_competences()
+    {
+        await SeedAsync(3, RankTier.Challenger, timeline: true);
+        await SeedAsync(2, RankTier.Challenger, offset: 100);
+        await Aggregator().AggregateAsync(Patch);
+
+        var detail = await new StatsQueryService(_db.Create(), Options.Create(new StatsOptions { MinGames = 1, MinSequenceGames = 2, MinPickrate = 0 }))
+            .GetChampionAsync(103, null, null, null);
+
+        Assert.NotNull(detail);
+        Assert.Equal(3, detail.TimelineGames);
+        Assert.Equal([1056, 2003, 2003], Assert.Single(detail.StarterItems).Items);
+        Assert.Equal([4645, 3020, 3157, 3089], Assert.Single(detail.ItemOrders).Items);
+        var skills = Assert.Single(detail.SkillOrders);
+        Assert.Equal(("QWEQQRQEQEREEWW", "Q > E > W", 3), (skills.Sequence, skills.Priority, skills.Games));
+        var spells = Assert.Single(detail.SummonerSpells);
+        Assert.Equal([4, 14], spells.Items);
+        Assert.Equal(5, spells.Games); // tous les matchs, même sans timeline
     }
 
     [Fact]

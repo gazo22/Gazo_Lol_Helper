@@ -466,6 +466,19 @@ a.rl-player-cell__name:hover { color: var(--rl-accent-strong); }
 .rl-build-list__items { display: flex; align-items: center; gap: 6px; }
 .rl-matchups__champ { display: flex; align-items: center; gap: var(--rl-space-2); font-weight: 500; min-width: 0; }
 .rl-matchups__champ:hover span { color: var(--rl-accent-strong); }
+.rl-champ-layout__wide { grid-column: 1 / -1; }
+.rl-build-list__spells { display: flex; align-items: center; gap: 6px; }
+.rl-skill-order { display: grid; gap: var(--rl-space-4); }
+.rl-skill-order__head { display: flex; align-items: center; gap: var(--rl-space-4); flex-wrap: wrap; }
+.rl-skill-order__priority { font-family: var(--rl-font-display); font-size: var(--rl-text-xl); font-weight: 600; letter-spacing: 0.04em; color: var(--rl-accent-strong); }
+.rl-skill-order__meta { margin-left: auto; display: flex; align-items: center; gap: var(--rl-space-3); min-width: 220px; }
+.rl-skill-grid { display: grid; gap: 4px; overflow-x: auto; }
+.rl-skill-grid__row { display: grid; grid-template-columns: 32px repeat(15, minmax(26px, 1fr)); gap: 4px; }
+.rl-skill-grid__key { display: grid; place-items: center; height: 28px; border-radius: var(--rl-radius-sm); background: var(--rl-surface-2); font-weight: 700; font-family: var(--rl-font-display); }
+.rl-skill-grid__key--ult { color: var(--rl-warn); }
+.rl-skill-grid__cell { display: grid; place-items: center; height: 28px; border-radius: var(--rl-radius-sm); background: rgba(5, 8, 15, 0.35); border: 1px solid var(--rl-border); font-size: var(--rl-text-xs); font-variant-numeric: tabular-nums; color: var(--rl-text-3); }
+.rl-skill-grid__cell.is-on { background: var(--rl-accent-soft); border-color: rgba(34, 211, 238, 0.45); color: var(--rl-accent-strong); font-weight: 600; }
+.rl-skill-grid__cell.is-ult { background: rgba(251, 191, 36, 0.14); border-color: rgba(251, 191, 36, 0.45); color: var(--rl-warn); }
 @media (max-width: 1280px) { .rl-champ-layout { grid-template-columns: 1fr; } }
 
 /* ================= Phase 4 : draft ================= */

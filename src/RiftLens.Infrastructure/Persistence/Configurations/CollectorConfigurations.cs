@@ -34,8 +34,18 @@ internal sealed class StatConfigurations :
     IEntityTypeConfiguration<ChampionBanStat>,
     IEntityTypeConfiguration<MatchupStat>,
     IEntityTypeConfiguration<BuildStat>,
-    IEntityTypeConfiguration<RuneStat>
+    IEntityTypeConfiguration<RuneStat>,
+    IEntityTypeConfiguration<SequenceStat>
 {
+    public void Configure(EntityTypeBuilder<SequenceStat> builder)
+    {
+        builder.HasKey(s => new { s.Patch, s.Bucket, s.ChampionId, s.Role, s.Kind, s.Key });
+        builder.Property(s => s.Role).HasConversion<string>().HasMaxLength(8);
+        builder.Property(s => s.Kind).HasConversion<string>().HasMaxLength(16);
+        builder.Property(s => s.Key).HasMaxLength(64).IsUnicode(false);
+        Common(builder);
+    }
+
     public void Configure(EntityTypeBuilder<PatchTotals> builder)
     {
         builder.HasKey(t => new { t.Patch, t.Bucket });

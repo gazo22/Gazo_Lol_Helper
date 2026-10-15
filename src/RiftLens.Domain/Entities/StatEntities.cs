@@ -64,3 +64,28 @@ public sealed class RuneStat
     public int Games { get; set; }
     public int Wins { get; set; }
 }
+
+public enum SequenceKind
+{
+    /// <summary>Objets achetés avant 1 min 30, triés : « 1055-2003-2003 ».</summary>
+    StarterItems,
+    /// <summary>Objets complets (légendaires + bottes) dans l'ordre d'achat : « 3006-3031-3094-3036 ».</summary>
+    ItemOrder,
+    /// <summary>Montée des sorts sur 15 niveaux : « QWEQQRQEQEREEWW ».</summary>
+    SkillOrder,
+    /// <summary>Paire de sorts d'invocateur triée : « 4-14 » (tous les matchs, sans timeline).</summary>
+    SummonerSpells,
+}
+
+/// <summary>Séquences issues des timelines (échantillon des matchs collectés).</summary>
+public sealed class SequenceStat
+{
+    public required string Patch { get; init; }
+    public RankTier Bucket { get; init; }
+    public int ChampionId { get; init; }
+    public Role Role { get; init; }
+    public SequenceKind Kind { get; init; }
+    public required string Key { get; init; }
+    public int Games { get; set; }
+    public int Wins { get; set; }
+}

@@ -72,7 +72,51 @@
             </div>
 
             <div class="rl-champ-layout">
-                <Card Title="Builds les plus joués">
+                <Card Title="Sorts d'invocateur">
+                    @if (_detail.SummonerSpells.Count == 0) { <div class="rl-chart-empty">Pas encore assez de parties (≥ @_detail.MinSequenceGames).</div> }
+                    <ul class="rl-build-list">
+                        @foreach (var sp in _detail.SummonerSpells)
+                        {
+                            <li>
+                                <div class="rl-build-list__spells">
+                                    @foreach (var id in sp.Items) { <SpellIcon Id="id" Size="34" /> }
+                                    <span>@string.Join(" + ", sp.Items.Select(Game.SpellName))</span>
+                                </div>
+                                <WinrateBar Winrate="sp.Winrate" Games="sp.Games" />
+                                <small class="rl-muted rl-num-cell">@Fmt.Num(sp.Games)</small>
+                            </li>
+                        }
+                    </ul>
+                </Card>
+
+                <Card Title="Objets de départ">
+                    @ItemSequences(_detail.StarterItems, false)
+                </Card>
+
+                <Card Title="Ordre des compétences" Class="rl-champ-layout__wide">
+                    @if (_detail.SkillOrders.Count == 0) { <div class="rl-chart-empty">Pas encore assez de parties avec timeline (≥ @_detail.MinSequenceGames).</div> }
+                    <div class="rl-skill-order">
+                        @foreach (var so in _detail.SkillOrders)
+                        {
+                            <div>
+                                <div class="rl-skill-order__head">
+                                    <span class="rl-skill-order__priority">@so.Priority</span>
+                                    <div class="rl-skill-order__meta">
+                                        <WinrateBar Winrate="so.Winrate" Games="so.Games" />
+                                        <small class="rl-muted rl-num-cell">@Fmt.Num(so.Games)</small>
+                                    </div>
+                                </div>
+                                <SkillOrderGrid Sequence="@so.Sequence" />
+                            </div>
+                        }
+                    </div>
+                </Card>
+
+                <Card Title="Build complet (ordre d'achat)" Class="rl-champ-layout__wide">
+                    @ItemSequences(_detail.ItemOrders, true)
+                </Card>
+
+                <Card Title="Objets clés (3 légendaires)">
                     @if (_detail.Builds.Count == 0) { <div class="rl-chart-empty">Pas encore assez de parties (≥ @_detail.MinBuildGames par build).</div> }
                     <ul class="rl-build-list">
                         @foreach (var b in _detail.Builds)
@@ -114,7 +158,9 @@
                 </Card>
             </div>
             <p class="rl-footnote">
-                Taille d'échantillon affichée pour chaque ligne. Builds : 3 premiers objets légendaires (hors bottes).
+                Taille d'échantillon affichée pour chaque ligne. Objets clés : 3 premiers objets légendaires (hors bottes).
+                Départ, build complet et compétences : @Fmt.Num(_detail.TimelineGames) parties avec timeline (environ 1 match collecté sur 3),
+                minimum @_detail.MinSequenceGames parties par ligne.
                 Matchups classés par intervalle de confiance de Wilson, minimum @_detail.MinMatchupGames parties.
             </p>
         }
@@ -122,6 +168,30 @@
 </div>
 
 @code {
+    private RenderFragment ItemSequences(IReadOnlyList<BuildDto> rows, bool arrows) => __builder =>
+    {
+        if (rows.Count == 0)
+        {
+            <div class="rl-chart-empty">Pas encore assez de parties avec timeline (≥ @_detail!.MinSequenceGames).</div>
+        }
+        <ul class="rl-build-list">
+            @foreach (var b in rows)
+            {
+                <li>
+                    <div class="rl-build-list__items">
+                        @for (var i = 0; i < b.Items.Count; i++)
+                        {
+                            @if (arrows && i > 0) { <Icon Name="arrow-right" Class="rl-ico-12 rl-muted" /> }
+                            <ItemSlot Src="@Game.ItemIcon(b.Items[i])" Name="@Game.ItemName(b.Items[i])" Size="34" />
+                        }
+                    </div>
+                    <WinrateBar Winrate="b.Winrate" Games="b.Games" />
+                    <small class="rl-muted rl-num-cell">@Fmt.Num(b.Games)</small>
+                </li>
+            }
+        </ul>
+    };
+
     private int? _championId;
     private ChampionDetailDto? _detail;
     private IReadOnlyList<string> _patches = [];

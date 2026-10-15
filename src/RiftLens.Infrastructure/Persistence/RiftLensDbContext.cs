@@ -19,6 +19,7 @@ public sealed class RiftLensDbContext(DbContextOptions<RiftLensDbContext> option
     public DbSet<MatchupStat> MatchupStats => Set<MatchupStat>();
     public DbSet<BuildStat> BuildStats => Set<BuildStat>();
     public DbSet<RuneStat> RuneStats => Set<RuneStat>();
+    public DbSet<SequenceStat> SequenceStats => Set<SequenceStat>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

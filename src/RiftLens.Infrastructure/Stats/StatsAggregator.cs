@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using RiftLens.Contracts;
 using RiftLens.Domain.Entities;
 using RiftLens.Domain.ValueObjects;
+using RiftLens.Infrastructure.Matches;
 using RiftLens.Infrastructure.Persistence;
 using RiftLens.Infrastructure.StaticData;
 
@@ -24,7 +25,7 @@ internal sealed partial class StatsAggregator(
     TimeProvider time,
     ILogger<StatsAggregator> logger) : IStatsAggregator
 {
-    private const int BatchSize = 500;
+    private const int BatchSize = 200; // les timelines compressées alourdissent chaque match
 
     public async Task<int> AggregateAsync(Patch patch, CancellationToken ct = default)
     {
@@ -72,6 +73,7 @@ internal sealed partial class StatsAggregator(
             await db.MatchupStats.Where(s => s.Patch == key).ExecuteDeleteAsync(token);
             await db.BuildStats.Where(s => s.Patch == key).ExecuteDeleteAsync(token);
             await db.RuneStats.Where(s => s.Patch == key).ExecuteDeleteAsync(token);
+            await db.SequenceStats.Where(s => s.Patch == key).ExecuteDeleteAsync(token);
 
             var now = time.GetUtcNow();
             db.PatchTotals.AddRange(acc.Totals.Select(t => new PatchTotals { Patch = key, Bucket = t.Key, Matches = t.Value, ComputedAt = now }));
@@ -80,6 +82,7 @@ internal sealed partial class StatsAggregator(
             db.MatchupStats.AddRange(acc.Matchups.Values);
             db.BuildStats.AddRange(acc.Builds.Values);
             db.RuneStats.AddRange(acc.Runes.Values);
+            db.SequenceStats.AddRange(acc.Sequences.Values);
             await db.SaveChangesAsync(token);
             await tx.CommitAsync(token);
         }, ct);
@@ -100,11 +103,13 @@ internal sealed partial class StatsAggregator(
         public Dictionary<(RankTier, Role, int, int), MatchupStat> Matchups { get; } = [];
         public Dictionary<(RankTier, int, Role, string), BuildStat> Builds { get; } = [];
         public Dictionary<(RankTier, int, Role, string), RuneStat> Runes { get; } = [];
+        public Dictionary<(RankTier, int, Role, SequenceKind, string), SequenceStat> Sequences { get; } = [];
 
         public void Add(Match match, ItemCategories categories)
         {
             var bucket = match.SourceTier!.Value;
             Totals[bucket] = Totals.GetValueOrDefault(bucket) + 1;
+            var timeline = match.TimelineGzip is { } gz ? MatchService.Decompress(gz) : null;
 
             foreach (var ban in match.Bans.Select(b => b.ChampionId).Distinct())
             {
@@ -133,6 +138,19 @@ internal sealed partial class StatsAggregator(
                     build.Wins += win;
                 }
 
+                if (p.Summoners is [var s1, var s2] && s1 > 0 && s2 > 0)
+                {
+                    AddSequence(bucket, p, SequenceKind.SummonerSpells, $"{Math.Min(s1, s2)}-{Math.Max(s1, s2)}", win);
+                }
+
+                if (timeline is not null)
+                {
+                    var t = TimelineAnalyzer.Analyze(timeline, p.ParticipantId, categories);
+                    AddSequence(bucket, p, SequenceKind.StarterItems, t.StarterKey, win);
+                    AddSequence(bucket, p, SequenceKind.ItemOrder, t.ItemOrder.Count >= 2 ? string.Join('-', t.ItemOrder) : null, win);
+                    AddSequence(bucket, p, SequenceKind.SkillOrder, t.SkillOrder, win);
+                }
+
                 if (p.PrimaryStyle > 0)
                 {
                     var runeKey = RuneKey(p);
@@ -141,6 +159,21 @@ internal sealed partial class StatsAggregator(
                     rune.Wins += win;
                 }
             }
+        }
+
+        private void AddSequence(RankTier bucket, MatchParticipant p, SequenceKind kind, string? key, int win)
+        {
+            if (key is null)
+            {
+                return;
+            }
+
+            var stat = Get(Sequences, (bucket, p.ChampionId, p.Role, kind, key), () => new SequenceStat
+            {
+                Patch = patch, Bucket = bucket, ChampionId = p.ChampionId, Role = p.Role, Kind = kind, Key = key,
+            });
+            stat.Games++;
+            stat.Wins += win;
         }
 
         private static T Get<TKey, T>(Dictionary<TKey, T> map, TKey key, Func<T> create)

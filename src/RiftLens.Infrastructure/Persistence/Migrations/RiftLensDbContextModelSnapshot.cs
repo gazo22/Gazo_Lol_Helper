@@ -514,6 +514,44 @@ namespace RiftLens.Infrastructure.Persistence.Migrations
                     b.ToTable("RuneStats", "rl");
                 });
 
+            modelBuilder.Entity("RiftLens.Domain.Entities.SequenceStat", b =>
+                {
+                    b.Property<string>("Patch")
+                        .HasMaxLength(8)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<string>("Bucket")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("ChampionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Role")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<string>("Kind")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Key")
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("Games")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Wins")
+                        .HasColumnType("int");
+
+                    b.HasKey("Patch", "Bucket", "ChampionId", "Role", "Kind", "Key");
+
+                    b.ToTable("SequenceStats", "rl");
+                });
+
             modelBuilder.Entity("RiftLens.Domain.Entities.LeagueSnapshot", b =>
                 {
                     b.HasOne("RiftLens.Domain.Entities.Player", null)

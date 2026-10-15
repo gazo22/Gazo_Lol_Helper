@@ -10,6 +10,9 @@ public sealed class StatsOptions
     /// <summary>Parties minimales pour afficher un build ou une page de runes.</summary>
     public int MinBuildGames { get; set; } = 30;
 
+    /// <summary>Parties minimales pour afficher une séquence (départ, ordre d'achat, ordre des sorts) — issues d'un échantillon.</summary>
+    public int MinSequenceGames { get; set; } = 10;
+
     /// <summary>Parties minimales pour afficher un matchup.</summary>
     public int MinMatchupGames { get; set; } = 20;
 

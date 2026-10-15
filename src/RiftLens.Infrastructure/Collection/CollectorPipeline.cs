@@ -135,6 +135,12 @@ public sealed partial class CollectorPipeline(
                 {
                     var match = MatchMapper.ToEntity(dto);
                     match.SourceTier = item.SourceTier;
+                    if (ShouldFetchTimeline(match.MatchId)
+                        && await riot.GetTimelineAsync(Options.Platform.ToRegional(), match.MatchId, ct) is { } timeline)
+                    {
+                        match.TimelineGzip = MatchService.Compress(timeline);
+                    }
+
                     db.Matches.Add(match);
                     MarkDone(item);
                     stored++;
@@ -177,6 +183,24 @@ public sealed partial class CollectorPipeline(
         }
 
         return total;
+    }
+
+    /// <summary>Échantillonnage déterministe (stable d'un redémarrage à l'autre) à partir de l'identifiant du match.</summary>
+    internal bool ShouldFetchTimeline(string matchId)
+    {
+        var rate = Options.TimelineSampleRate;
+        if (rate <= 0) { return false; }
+        if (rate >= 1) { return true; }
+
+        // FNV-1a + mélange final : les ids Riot étant séquentiels, un hash simple serait biaisé.
+        var hash = 2166136261u;
+        foreach (var c in matchId) { hash = unchecked((hash ^ c) * 16777619u); }
+        hash ^= hash >> 16;
+        hash = unchecked(hash * 0x85EBCA6Bu);
+        hash ^= hash >> 13;
+        hash = unchecked(hash * 0xC2B2AE35u);
+        hash ^= hash >> 16;
+        return hash % 1000 < rate * 1000;
     }
 
     private void MarkDone(QueuedMatch item)

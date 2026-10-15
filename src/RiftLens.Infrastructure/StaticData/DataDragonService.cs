@@ -132,6 +132,7 @@ internal sealed partial class DataDragonService(
     {
         var legendary = new HashSet<int>();
         var boots = new HashSet<int>();
+        var trinkets = new HashSet<int>();
         foreach (var item in items.RootElement.GetProperty("data").EnumerateObject())
         {
             if (!int.TryParse(item.Name, NumberStyles.None, CultureInfo.InvariantCulture, out var id))
@@ -140,9 +141,11 @@ internal sealed partial class DataDragonService(
             }
 
             var v = item.Value;
-            if (v.TryGetProperty("tags", out var tags) && tags.EnumerateArray().Any(t => t.GetString() == "Boots"))
+            if (v.TryGetProperty("tags", out var tags))
             {
-                boots.Add(id);
+                var tagList = tags.EnumerateArray().Select(t => t.GetString()).ToList();
+                if (tagList.Contains("Boots")) { boots.Add(id); }
+                if (tagList.Contains("Trinket")) { trinkets.Add(id); }
             }
 
             var final = !v.TryGetProperty("into", out var into) || into.GetArrayLength() == 0;
@@ -154,7 +157,7 @@ internal sealed partial class DataDragonService(
             }
         }
 
-        return new ItemCategories(legendary, boots);
+        return new ItemCategories(legendary, boots, trinkets);
     }
 
     private static void AddRune(Dictionary<int, RuneStaticDto> map, JsonElement rune) =>

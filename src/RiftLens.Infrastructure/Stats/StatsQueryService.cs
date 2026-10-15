@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using RiftLens.Contracts;
+using RiftLens.Domain.Entities;
 using RiftLens.Domain.Scoring;
 using RiftLens.Domain.ValueObjects;
 using RiftLens.Infrastructure.Persistence;
@@ -110,10 +111,30 @@ internal sealed class StatsQueryService(RiftLensDbContext db, IOptions<StatsOpti
         var best = matchups.OrderByDescending(m => Wilson.LowerBound(m.Wins, m.Games)).Take(5).ToList();
         var worst = matchups.OrderBy(m => Wilson.Interval(m.Wins, m.Games).Upper).Take(5).ToList();
 
+        var sequences = await db.SequenceStats.AsNoTracking()
+            .Where(s => s.Patch == key && buckets.Contains(s.Bucket) && s.ChampionId == championId && s.Role == selected)
+            .GroupBy(s => new { s.Kind, s.Key })
+            .Select(g => new { g.Key.Kind, g.Key.Key, Games = g.Sum(x => x.Games), Wins = g.Sum(x => x.Wins) })
+            .ToListAsync(ct);
+
+        List<T> Top<T>(SequenceKind kind, int take, Func<string, int, int, T> map) => sequences
+            .Where(s => s.Kind == kind && s.Games >= Options.MinSequenceGames)
+            .OrderByDescending(s => s.Games).Take(take)
+            .Select(s => map(s.Key, s.Games, s.Wins)).ToList();
+
         return new ChampionDetailDto(
             championId, key, eloKey, selected.ToString(), total, summary,
             roleStats.OrderByDescending(r => r.Games).Select(r => new RoleShareDto(r.Role.ToString(), r.Games, r.Wins)).ToList(),
-            builds, runes, best, worst, Options.MinBuildGames, Options.MinMatchupGames);
+            builds, runes, best, worst, Options.MinBuildGames, Options.MinMatchupGames)
+        {
+            StarterItems = Top(SequenceKind.StarterItems, 3, (k, g, w) => new BuildDto(ParseInts(k, '-'), g, w)),
+            ItemOrders = Top(SequenceKind.ItemOrder, 4, (k, g, w) => new BuildDto(ParseInts(k, '-'), g, w)),
+            SkillOrders = Top(SequenceKind.SkillOrder, 2, (k, g, w) => new SkillOrderDto(k, Matches.TimelineAnalyzer.SkillPriority(k), g, w)),
+            SummonerSpells = Top(SequenceKind.SummonerSpells, 2, (k, g, w) => new BuildDto(ParseInts(k, '-'), g, w)),
+            // Chaque partie avec timeline produit exactement une séquence de sorts (si au moins 6 niveaux).
+            TimelineGames = sequences.Where(s => s.Kind == SequenceKind.SkillOrder).Sum(s => s.Games),
+            MinSequenceGames = Options.MinSequenceGames,
+        };
     }
 
     public async Task<MatchupListDto?> GetMatchupsAsync(int championId, string? patch, string? role, string? elo, CancellationToken ct = default)

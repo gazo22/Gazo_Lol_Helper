@@ -1,0 +1,18 @@
+@* Grille de montée des sorts : 4 lignes (Q, W, E, R) × niveaux, la case du niveau où le sort est monté est allumée. *@
+<div class="rl-skill-grid" role="table" aria-label="Ordre des compétences">
+    @foreach (var skill in "QWER")
+    {
+        <div class="rl-skill-grid__row" role="row">
+            <span class="rl-skill-grid__key @(skill == 'R' ? "rl-skill-grid__key--ult" : null)" role="rowheader">@skill</span>
+            @for (var level = 0; level < Sequence.Length; level++)
+            {
+                var on = Sequence[level] == skill;
+                <span class="rl-skill-grid__cell @(on ? "is-on" : null) @(on && skill == 'R' ? "is-ult" : null)" role="cell" title="Niveau @(level + 1)">@(on ? (level + 1).ToString(CultureInfo.InvariantCulture) : null)</span>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Sequence { get; set; } = string.Empty;
+}

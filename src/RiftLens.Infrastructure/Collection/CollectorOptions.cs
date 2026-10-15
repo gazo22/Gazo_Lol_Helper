@@ -23,6 +23,12 @@ public sealed class CollectorOptions
 
     public int FetchBatchSize { get; set; } = 25;
 
+    /// <summary>
+    /// Part des matchs dont la timeline est aussi téléchargée (ordre d'achat, ordre des sorts). Chaque timeline coûte
+    /// une requête Riot : 1/3 ralentit la collecte d'environ 25 %.
+    /// </summary>
+    public double TimelineSampleRate { get; set; } = 1.0 / 3;
+
     /// <summary>Au-delà de ce nombre de matchs en attente, on ne cherche pas de nouveaux ids.</summary>
     public int MaxPending { get; set; } = 500;
 
