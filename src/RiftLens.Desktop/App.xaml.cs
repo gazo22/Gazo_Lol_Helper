@@ -22,9 +22,10 @@ public partial class App : Application
         base.OnStartup(e);
         DispatcherUnhandledException += (_, args) =>
         {
-            ReportFatal(args.Exception);
+            // Après le démarrage, une erreur ne doit pas fermer l'application : on la journalise et on continue.
             args.Handled = true;
-            Shutdown(1);
+            if (MainWindow is null) { ReportFatal(args.Exception); Shutdown(1); }
+            else { ReportNonFatal(args.Exception); }
         };
         AppDomain.CurrentDomain.UnhandledException += (_, args) => ReportFatal(args.ExceptionObject as Exception);
 
@@ -38,6 +39,20 @@ public partial class App : Application
         {
             ReportFatal(ex);
             Shutdown(1);
+        }
+    }
+
+    private static void ReportNonFatal(Exception ex)
+    {
+        try
+        {
+            var path = Path.Combine(LocalDataDirectory, "logs", "crash.log");
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.AppendAllText(path, $"[{DateTimeOffset.Now:O}] (non fatale) {ex}{Environment.NewLine}{Environment.NewLine}");
+        }
+        catch (IOException)
+        {
+            // Journalisation au mieux.
         }
     }
 

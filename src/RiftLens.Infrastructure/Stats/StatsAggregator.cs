@@ -60,23 +60,29 @@ internal sealed partial class StatsAggregator(
             lastId = batch[^1].MatchId;
         }
 
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
-        await db.PatchTotals.Where(s => s.Patch == key).ExecuteDeleteAsync(ct);
-        await db.ChampionStats.Where(s => s.Patch == key).ExecuteDeleteAsync(ct);
-        await db.ChampionBanStats.Where(s => s.Patch == key).ExecuteDeleteAsync(ct);
-        await db.MatchupStats.Where(s => s.Patch == key).ExecuteDeleteAsync(ct);
-        await db.BuildStats.Where(s => s.Patch == key).ExecuteDeleteAsync(ct);
-        await db.RuneStats.Where(s => s.Patch == key).ExecuteDeleteAsync(ct);
+        // La stratégie de reprise SQL Server impose d'exécuter la transaction comme un bloc rejouable.
+        var strategy = db.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async token =>
+        {
+            db.ChangeTracker.Clear();
+            await using var tx = await db.Database.BeginTransactionAsync(token);
+            await db.PatchTotals.Where(s => s.Patch == key).ExecuteDeleteAsync(token);
+            await db.ChampionStats.Where(s => s.Patch == key).ExecuteDeleteAsync(token);
+            await db.ChampionBanStats.Where(s => s.Patch == key).ExecuteDeleteAsync(token);
+            await db.MatchupStats.Where(s => s.Patch == key).ExecuteDeleteAsync(token);
+            await db.BuildStats.Where(s => s.Patch == key).ExecuteDeleteAsync(token);
+            await db.RuneStats.Where(s => s.Patch == key).ExecuteDeleteAsync(token);
 
-        var now = time.GetUtcNow();
-        db.PatchTotals.AddRange(acc.Totals.Select(t => new PatchTotals { Patch = key, Bucket = t.Key, Matches = t.Value, ComputedAt = now }));
-        db.ChampionStats.AddRange(acc.Champions.Values);
-        db.ChampionBanStats.AddRange(acc.Bans.Values);
-        db.MatchupStats.AddRange(acc.Matchups.Values);
-        db.BuildStats.AddRange(acc.Builds.Values);
-        db.RuneStats.AddRange(acc.Runes.Values);
-        await db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
+            var now = time.GetUtcNow();
+            db.PatchTotals.AddRange(acc.Totals.Select(t => new PatchTotals { Patch = key, Bucket = t.Key, Matches = t.Value, ComputedAt = now }));
+            db.ChampionStats.AddRange(acc.Champions.Values);
+            db.ChampionBanStats.AddRange(acc.Bans.Values);
+            db.MatchupStats.AddRange(acc.Matchups.Values);
+            db.BuildStats.AddRange(acc.Builds.Values);
+            db.RuneStats.AddRange(acc.Runes.Values);
+            await db.SaveChangesAsync(token);
+            await tx.CommitAsync(token);
+        }, ct);
         db.ChangeTracker.Clear();
 
         var total = acc.Totals.Values.Sum();

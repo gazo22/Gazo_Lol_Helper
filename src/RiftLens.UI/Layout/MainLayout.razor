@@ -40,17 +40,23 @@
 
     <main class="rl-main">
         <ServerBanner />
-        @Body
+        <AppErrorBoundary @ref="_boundary">@Body</AppErrorBoundary>
     </main>
 </div>
 
-<CommandPalette />
+<AppErrorBoundary><CommandPalette /></AppErrorBoundary>
 
 @code {
     private IJSObjectReference? _module;
     private IJSObjectReference? _hotkeys;
     private DotNetObjectReference<MainLayout>? _self;
     private readonly CancellationTokenSource _monitor = new();
+    private AppErrorBoundary? _boundary;
+
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
+
+    // Une nouvelle navigation efface l'erreur affichée par la page précédente.
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e) => _boundary?.Recover();
     private bool _setupOffered;
 
     /// <summary>Surveille le serveur toutes les 30 s (service arrêté, clé Riot expirée…).</summary>
@@ -100,6 +106,7 @@
 
     public async ValueTask DisposeAsync()
     {
+        Nav.LocationChanged -= OnLocationChanged;
         await _monitor.CancelAsync();
         _monitor.Dispose();
         try

@@ -1,0 +1,33 @@
+@inherits ErrorBoundary
+@using Microsoft.Extensions.Logging
+@inject ILogger<AppErrorBoundary> Logger
+
+@if (CurrentException is null)
+{
+    @ChildContent
+}
+else
+{
+    <div class="rl-page">
+        <Card NoPadding="true">
+            <EmptyState Title="Cette page a rencontré une erreur" IconName="bolt"
+                        Description="@CurrentException.Message">
+                <div style="display:flex;gap:var(--rl-space-3)">
+                    <button class="rl-btn" @onclick="Recover">Réessayer</button>
+                    <a class="rl-btn rl-btn--primary" href="" @onclick="Recover">Revenir à l'accueil</a>
+                </div>
+                <small class="rl-muted">Détails dans %LocalAppData%\RiftLens\logs</small>
+            </EmptyState>
+        </Card>
+    </div>
+}
+
+@code {
+    protected override Task OnErrorAsync(Exception exception)
+    {
+#pragma warning disable CA1848
+        Logger.LogError(exception, "Erreur non gérée dans une page");
+#pragma warning restore CA1848
+        return Task.CompletedTask;
+    }
+}

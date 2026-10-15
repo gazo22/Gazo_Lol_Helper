@@ -82,7 +82,8 @@
         if (_focusPending && State.IsOpen)
         {
             _focusPending = false;
-            await _input.FocusAsync();
+            try { await _input.FocusAsync(); }
+            catch (JSException) { /* élément pas encore dans le DOM : le focus n'est qu'un confort */ }
         }
     }
 
@@ -100,7 +101,14 @@
         var all = new List<PaletteEntry>();
         foreach (var source in Sources)
         {
-            all.AddRange(await source.SearchAsync(_query, token));
+            try
+            {
+                all.AddRange(await source.SearchAsync(_query, token));
+            }
+            catch (OperationCanceledException)
+            {
+                return; // remplacée par une recherche plus récente
+            }
         }
 
         if (!token.IsCancellationRequested)
